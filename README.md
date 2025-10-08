@@ -129,8 +129,8 @@ All admin endpoints require `Authorization: Bearer <token>`.
 
 - Use the supplied `render.yaml` blueprint or create two services manually:
   - **Web Service (`backend/`)** - Build command `npm install`, start command `npm run start`. Set `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `ALLOWED_ORIGINS` (comma-separated list that includes your Vercel domain).
-  - **Worker (`bot/`)** - Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, and `ADMIN_WEBAPP_PATH`.
-- Both services are configured for Render’s free plan (`plan: free`) so no payment method is required. If you import the blueprint before this change, edit the services in Render to downgrade the plan to “Free”.
+  - **Web Service (`bot/`)** - Also provisioned as a web service (Render free plan does not allow background workers). Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, and `ADMIN_WEBAPP_PATH`.
+- Both services are configured for Render’s free plan (`plan: free`) so no payment method is required. If you imported the blueprint before this change, edit the services in Render to downgrade the plan to “Free”. Because the bot runs as a web service, it now exposes a simple health endpoint while continuing to poll Telegram in the background.
 - On Supabase create the tables via `schema.sql`, seed via `seed.sql`, and copy your project URL + service-role key into Render.
 
 ### Vercel (Frontend)

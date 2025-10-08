@@ -15,7 +15,7 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         value: https://<your-vercel-domain>
-  - type: worker
+  - type: web
     name: picco-telegram-bot
     env: node
     rootDir: bot

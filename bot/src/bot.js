@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import http from 'http';
 
 dotenv.config({ path: '.env' });
 
@@ -129,3 +130,21 @@ bot.on('polling_error', (error) => {
   // eslint-disable-next-line no-console
   console.error('Polling error:', error.message);
 });
+
+const PORT = process.env.PORT || 8080;
+
+http
+  .createServer((req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok' }));
+      return;
+    }
+
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('PICCO telegram bot is running');
+  })
+  .listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Health server listening on port ${PORT}`);
+  });
