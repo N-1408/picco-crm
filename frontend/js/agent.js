@@ -36,11 +36,15 @@ async function resolveAgentContext() {
   initTelegram();
   const telegramUser = getTelegramUser();
   const url = new URL(window.location.href);
-  const telegramId = telegramUser?.id ?? url.searchParams.get('telegramId');
+  const paramTelegramId = url.searchParams.get('tg_id') ?? url.searchParams.get('telegramId');
+  const storedTelegramId = sessionStorage.getItem('picco_agent_telegram_id');
+  const telegramId = telegramUser?.id ?? paramTelegramId ?? storedTelegramId;
 
   if (!telegramId) {
     throw new Error('Telegram ID topilmedi. Iltimos, Mini Appni Telegram orqali oching.');
   }
+
+  sessionStorage.setItem('picco_agent_telegram_id', telegramId);
 
   const cached = readCachedProfile(telegramId);
   if (cached) {

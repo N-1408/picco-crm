@@ -4,7 +4,34 @@ const DEFAULT_CONFIG = {
   adminPanelUrl: '/pages/admin/login.html'
 };
 
-export const CONFIG = { ...DEFAULT_CONFIG, ...(window.__PICCO_CONFIG ?? {}) };
+function resolveApiBaseUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const queryValue = url.searchParams.get('api');
+    if (queryValue) {
+      sessionStorage.setItem('picco_api_base_url', queryValue);
+      return queryValue;
+    }
+  } catch (error) {
+    // ignore url parsing errors
+  }
+
+  const cached = sessionStorage.getItem('picco_api_base_url');
+  if (cached) return cached;
+
+  if (window.__PICCO_CONFIG?.apiBaseUrl) {
+    return window.__PICCO_CONFIG.apiBaseUrl;
+  }
+
+  return DEFAULT_CONFIG.apiBaseUrl;
+}
+
+export const CONFIG = {
+  ...DEFAULT_CONFIG,
+  ...(window.__PICCO_CONFIG ?? {})
+};
+
+CONFIG.apiBaseUrl = resolveApiBaseUrl();
 
 const API_BASE_URL = CONFIG.apiBaseUrl;
 const ADMIN_TOKEN_KEY = 'picco_admin_token';
@@ -34,11 +61,16 @@ async function request(path, { method = 'GET', body, auth = false, headers = {} 
     }
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: finalHeaders,
-    body: body ? JSON.stringify(body) : undefined
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: finalHeaders,
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch (networkError) {
+    throw new Error('Serverga ulanib bo\'lmadi. Internet yoki API sozlamalarini tekshiring.');
+  }
 
   if (!response.ok) {
     let errorMessage = 'API request failed';
@@ -60,7 +92,7 @@ async function request(path, { method = 'GET', body, auth = false, headers = {} 
 
 // Agent APIs
 export function fetchAgentProfile(telegramId) {
-  return request(`/auth/agent/${telegramId}`);
+  return request(`/auth/agent/${encodeURIComponent(telegramId)}`);
 }
 
 export function fetchAgentProducts() {

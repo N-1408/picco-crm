@@ -24,14 +24,33 @@ const keyboards = {
     keyboard: [[{ text: '📞 Telefon raqamni yuborish', request_contact: true }]],
     resize_keyboard: true,
     one_time_keyboard: true
-  },
-  webApp: {
-    inline_keyboard: [[
-      { text: '🧾 Agent Paneli', web_app: { url: joinUrl(webAppUrl, agentWebAppPath) } },
-      { text: '🛠 Admin Paneli', web_app: { url: joinUrl(webAppUrl, adminWebAppPath) } }
-    ]]
   }
 };
+
+function buildWebAppUrl(path, telegramId) {
+  const base = joinUrl(webAppUrl, path);
+  try {
+    const url = new URL(base);
+    url.searchParams.set('api', backendBaseUrl);
+    if (telegramId) {
+      url.searchParams.set('tg_id', telegramId);
+    }
+    return url.toString();
+  } catch (error) {
+    return base;
+  }
+}
+
+function getWebAppKeyboard(telegramId) {
+  const agentUrl = buildWebAppUrl(agentWebAppPath, telegramId);
+  const adminUrl = buildWebAppUrl(adminWebAppPath, telegramId);
+  return {
+    inline_keyboard: [[
+      { text: '🧾 Agent Paneli', web_app: { url: agentUrl } },
+      { text: '🛠 Admin Paneli', web_app: { url: adminUrl } }
+    ]]
+  };
+}
 
 function joinUrl(base, path) {
   if (!path) return base;
@@ -110,7 +129,7 @@ bot.on('contact', async (msg) => {
     await bot.sendMessage(
       chatId,
       'Panelni tanlang:',
-      { reply_markup: keyboards.webApp }
+      { reply_markup: getWebAppKeyboard(session.telegramId) }
     );
   } catch (error) {
     const message = error.response?.data?.error ?? 'Xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko\'ring.';

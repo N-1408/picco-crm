@@ -1,4 +1,4 @@
-﻿# picco-crm
+# picco-crm
 
 ## PICCO Mini App CRM
 
@@ -91,15 +91,15 @@ Or deploy to Vercel/Netlify.
 
 ## Telegram Bot Flow
 
-1. `/start` → ask for full name.
-2. Request contact → register agent via backend (`/api/auth/register`).
+1. `/start` > ask for full name.
+2. Request contact > register agent via backend (`/api/auth/register`).
 3. Success message + inline WebApp buttons (Agent/Admin panels).
 4. If the agent already exists, backend returns 200 and the bot still opens the panel buttons.
 
 ## Backend API Highlights
 
 - `POST /api/auth/register` - Agent registration (Telegram ID + contact)
-- `POST /api/auth/login` - Admin login → JWT
+- `POST /api/auth/login` - Admin login > JWT
 - `GET /api/auth/agent/:telegramId` - WebApp fetch agent profile
 - Agent endpoints: orders, stores, stats, product catalog
 - Admin endpoints: products CRUD, stores CRUD, agents list, stats, exports, admin management, reset
@@ -136,7 +136,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 ### Vercel (Frontend)
 
 - Set the project root to `frontend/`.
-- Environment variables (Project Settings → Environment Variables):
+- Environment variables (Project Settings > Environment Variables):
   - `API_BASE_URL=https://<render-backend>/api`
   - Optional overrides: `AGENT_PANEL_URL`, `ADMIN_PANEL_URL`
 - Build command: `npm run build` (writes `config.js`).
@@ -158,6 +158,8 @@ All admin endpoints require `Authorization: Bearer <token>`.
 
 ## Support
 
-- Telegram bot issues → check polling logs in `bot/src/bot.js`.
-- API debugging → enable Supabase logs, inspect console output from the Express server.
-- Frontend enhancements → update `frontend/js/*.js` modules and Tailwind classes.
+- Telegram bot issues > check polling logs in `bot/src/bot.js`.
+- API debugging > enable Supabase logs, inspect console output from the Express server.
+- Frontend enhancements > update `frontend/js/*.js` modules and Tailwind classes.
+
+
