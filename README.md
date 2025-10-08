@@ -38,11 +38,13 @@ BACKEND_BASE_URL=https://<backend-host>/api
 WEBAPP_URL=https://<frontend-host>
 AGENT_WEBAPP_PATH=/pages/agent/dashboard.html
 ADMIN_WEBAPP_PATH=/pages/admin/login.html
+TELEGRAM_WEBHOOK_URL=https://<bot-service-domain>/webhook
+TELEGRAM_WEBHOOK_PATH=/webhook
 ```
 
 ### Frontend config (`frontend/config.js`)
 
-The frontend reads `window.__PICCO_CONFIG` from `config.js`. During local development the file defaults to `http://localhost:4000/api`. For deployments the `frontend/scripts/generate-config.mjs` script overwrites it based on environment variables (see **Deployment Notes**).
+The frontend reads `window.__PICCO_CONFIG` from `config.js`. During local development the file defaults to `http://localhost:4000/api`. For deployments, the `frontend/scripts/generate-config.mjs` script overwrites it based on environment variables (see **Deployment Notes**).
 
 ## Database Setup
 
@@ -79,7 +81,7 @@ cd bot
 npm run dev
 ```
 
-Provide the bot with a webhook or keep polling enabled (default).
+Set `USE_POLLING=true` in `bot/.env` during local development to run with long polling instead of the webhook.
 
 **Frontend**
 Serve the `frontend/` directory on HTTPS to leverage Telegram WebApp features. During development you can run:
@@ -95,6 +97,15 @@ Or deploy to Vercel/Netlify.
 2. Request contact > register agent via backend (`/api/auth/register`).
 3. Success message + inline WebApp buttons (Agent/Admin panels).
 4. If the agent already exists, backend returns 200 and the bot still opens the panel buttons.
+
+### WebApp Deep Link Parameters
+
+The bot appends useful query parameters when it opens the Mini App:
+
+- `api` ñ points to the Render backend (the frontend falls back to this value if `config.js` was built without `API_BASE_URL`).
+- `tg_id` ñ Telegram user ID, used as a fallback when the Mini App link is opened outside the Telegram client.
+
+This allows the Vercel build to work even without additional environment variables, and you can paste the link into a desktop browser for quick checks.
 
 ## Backend API Highlights
 
@@ -128,17 +139,18 @@ All admin endpoints require `Authorization: Bearer <token>`.
 ### Render (Backend & Bot)
 
 - Use the supplied `render.yaml` blueprint or create two services manually:
-  - **Web Service (`backend/`)** - Build command `npm install`, start command `npm run start`. Set `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `ALLOWED_ORIGINS` (comma-separated list that includes your Vercel domain).
-  - **Web Service (`bot/`)** - Also provisioned as a web service (Render free plan does not allow background workers). Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, and `ADMIN_WEBAPP_PATH`.
-- Both services are configured for Render‚Äôs free plan (`plan: free`) so no payment method is required. If you imported the blueprint before this change, edit the services in Render to downgrade the plan to ‚ÄúFree‚Äù. Because the bot runs as a web service, it now exposes a simple health endpoint while continuing to poll Telegram in the background.
+  - **Web Service (`backend/`)** ñ Build command `npm install`, start command `npm run start`. Set `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `ALLOWED_ORIGINS` (comma-separated list that includes your Vercel domain).
+  - **Web Service (`bot/`)** ñ Render's free tier does not expose background workers, so the bot runs as a web service with a webhook endpoint. Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, `ADMIN_WEBAPP_PATH`, plus webhook variables: either `TELEGRAM_WEBHOOK_URL=https://<bot-service-domain>/webhook` (recommended) or `WEBHOOK_BASE_URL` + `TELEGRAM_WEBHOOK_PATH`.
+- Both services are configured for Render's free plan (`plan: free`) so no payment method is required. If you imported the blueprint before this change, edit the services in Render to downgrade the plan to "Free".
+- After deploy, the bot service automatically calls Telegram's `setWebhook`. For local development you can opt into polling by setting `USE_POLLING=true` in your local `.env` and omitting the webhook variables.
 - On Supabase create the tables via `schema.sql`, seed via `seed.sql`, and copy your project URL + service-role key into Render.
 
 ### Vercel (Frontend)
 
 - Set the project root to `frontend/`.
 - Environment variables (Project Settings > Environment Variables):
-  - `API_BASE_URL=https://<render-backend>/api`
-  - Optional overrides: `AGENT_PANEL_URL`, `ADMIN_PANEL_URL`
+  - `API_BASE_URL=https://<render-backend>/api` (optional if you rely on the `api` deep-link parameter).
+  - Optional overrides: `AGENT_PANEL_URL`, `ADMIN_PANEL_URL`.
 - Build command: `npm run build` (writes `config.js`).
 - Output directory: `.` (the static HTML/CSS/JS lives directly inside `frontend/`).
 - Ensure HTTPS is enforced so Telegram WebApp can load it inside the bot.
@@ -158,8 +170,6 @@ All admin endpoints require `Authorization: Bearer <token>`.
 
 ## Support
 
-- Telegram bot issues > check polling logs in `bot/src/bot.js`.
+- Telegram bot issues > check logs for the webhook service in Render.
 - API debugging > enable Supabase logs, inspect console output from the Express server.
 - Frontend enhancements > update `frontend/js/*.js` modules and Tailwind classes.
-
-

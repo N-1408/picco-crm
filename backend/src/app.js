@@ -10,19 +10,36 @@ const app = express();
 
 loadEnv();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+const normalizeOrigin = (origin) => {
+  if (!origin) return origin;
+  try {
+    const { protocol, host } = new URL(origin);
+    return `${protocol}//${host}`;
+  } catch (error) {
+    return origin.replace(/\/+$/, '');
+  }
+};
+
+const allowedOriginsRaw = (process.env.ALLOWED_ORIGINS ?? '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const allowedOriginsNormalized = Array.from(
+  new Set(allowedOriginsRaw.map((origin) => normalizeOrigin(origin)))
+);
+
+const allowAllOrigins = allowedOriginsNormalized.length === 0;
 
 app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
+      if (!origin || allowAllOrigins || allowedOriginsNormalized.includes('*')) {
         return callback(null, true);
       }
-      if (allowedOrigins.includes(origin)) {
+      const normalizedOrigin = normalizeOrigin(origin);
+      if (allowedOriginsNormalized.includes(normalizedOrigin)) {
         return callback(null, true);
       }
       const corsError = new Error('Not allowed by CORS');

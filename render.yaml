@@ -33,4 +33,9 @@ services:
         value: /pages/agent/dashboard.html
       - key: ADMIN_WEBAPP_PATH
         value: /pages/admin/login.html
+      - key: TELEGRAM_WEBHOOK_URL
+        value: https://<your-bot-service-domain>/webhook
+      - key: TELEGRAM_WEBHOOK_PATH
+        value: /webhook
+
 

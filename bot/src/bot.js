@@ -1,7 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import http from 'http';
+import express from 'express';
 
 dotenv.config({ path: '.env' });
 
@@ -10,13 +10,15 @@ const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:4000/ap
 const webAppUrl = process.env.WEBAPP_URL || 'https://picco-mini-app.example.com';
 const agentWebAppPath = process.env.AGENT_WEBAPP_PATH || '/pages/agent/dashboard.html';
 const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/pages/admin/login.html';
+const webhookUrlEnv = process.env.TELEGRAM_WEBHOOK_URL;
+const webhookPathEnv = process.env.TELEGRAM_WEBHOOK_PATH;
+const usePolling = process.env.USE_POLLING === 'true' || (!webhookUrlEnv && !webhookPathEnv);
 
 if (!token) {
   throw new Error('Missing TELEGRAM_BOT_TOKEN in environment');
 }
 
-const bot = new TelegramBot(token, { polling: true });
-
+const bot = new TelegramBot(token, { polling: false });
 const sessions = new Map();
 
 const keyboards = {
@@ -26,6 +28,13 @@ const keyboards = {
     one_time_keyboard: true
   }
 };
+
+function joinUrl(base, path) {
+  if (!path) return base;
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+}
 
 function buildWebAppUrl(path, telegramId) {
   const base = joinUrl(webAppUrl, path);
@@ -50,13 +59,6 @@ function getWebAppKeyboard(telegramId) {
       { text: '🛠 Admin Paneli', web_app: { url: adminUrl } }
     ]]
   };
-}
-
-function joinUrl(base, path) {
-  if (!path) return base;
-  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${normalizedBase}${normalizedPath}`;
 }
 
 async function registerAgent(telegramId, name, phone) {
@@ -150,20 +152,61 @@ bot.on('polling_error', (error) => {
   console.error('Polling error:', error.message);
 });
 
-const PORT = process.env.PORT || 8080;
+bot.on('webhook_error', (error) => {
+  // eslint-disable-next-line no-console
+  console.error('Webhook error:', error.message);
+});
 
-http
-  .createServer((req, res) => {
-    if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok' }));
-      return;
-    }
-
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('PICCO telegram bot is running');
-  })
-  .listen(PORT, () => {
+async function start() {
+  if (usePolling) {
+    await bot.startPolling();
     // eslint-disable-next-line no-console
-    console.log(`Health server listening on port ${PORT}`);
+    console.log('Bot started in polling mode');
+    return;
+  }
+
+  const app = express();
+  app.use(express.json());
+
+  const defaultPath = `/webhook/${token}`;
+  const webhookPath = webhookPathEnv || defaultPath;
+  const baseWebhookUrl = webhookUrlEnv
+    || process.env.WEBHOOK_BASE_URL
+    || process.env.RENDER_EXTERNAL_URL
+    || '';
+
+  if (!baseWebhookUrl) {
+    throw new Error('Missing TELEGRAM_WEBHOOK_URL or WEBHOOK_BASE_URL environment variable');
+  }
+
+  const normalizedBase = baseWebhookUrl.endsWith('/')
+    ? baseWebhookUrl.slice(0, -1)
+    : baseWebhookUrl;
+  const normalizedPath = webhookPath.startsWith('/')
+    ? webhookPath
+    : `/${webhookPath}`;
+  const fullWebhookUrl = `${normalizedBase}${normalizedPath}`;
+
+  await bot.setWebHook(fullWebhookUrl);
+
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
   });
+
+  app.post(normalizedPath, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+  });
+
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Webhook server listening on port ${PORT}`);
+  });
+}
+
+start().catch((error) => {
+  // eslint-disable-next-line no-console
+  console.error('Failed to start bot:', error);
+  process.exit(1);
+});
