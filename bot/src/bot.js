@@ -13,6 +13,7 @@ const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/pages/admin/login.htm
 const webhookUrlEnv = process.env.TELEGRAM_WEBHOOK_URL;
 const webhookPathEnv = process.env.TELEGRAM_WEBHOOK_PATH;
 const usePolling = process.env.USE_POLLING === 'true' || (!webhookUrlEnv && !webhookPathEnv);
+const PORT = process.env.PORT || 8080;
 
 if (!token) {
   throw new Error('Missing TELEGRAM_BOT_TOKEN in environment');
@@ -82,7 +83,7 @@ bot.onText(/\/start/, async (msg) => {
 
   const welcome = [
     'Salom! PICCO agentlar paneliga xush kelibsiz.',
-    'Iltimos, to\'liq ism-familiyangizni kiriting.'
+    'Iltimos, to‘liq ism-familiyangizni kiriting.'
   ].join('\n');
 
   await bot.sendMessage(chatId, welcome);
@@ -92,7 +93,6 @@ bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const session = sessions.get(chatId);
 
-  // ignore if no active session or message is contact (handled separately)
   if (!session || msg.text?.startsWith('/')) {
     return;
   }
@@ -124,7 +124,7 @@ bot.on('contact', async (msg) => {
 
     await bot.sendMessage(
       chatId,
-      'Tabriklaymiz 🎉! Siz muvaffaqiyatli ro\'yxatdan o\'tdingiz va endi PICCO kompaniyasining rasmiy agentisiz.',
+      'Tabriklaymiz 🎉! Siz muvaffaqiyatli ro‘yxatdan o‘tdingiz va endi PICCO kompaniyasining rasmiy agentisiz.',
       { reply_markup: { remove_keyboard: true } }
     );
 
@@ -134,7 +134,7 @@ bot.on('contact', async (msg) => {
       { reply_markup: getWebAppKeyboard(session.telegramId) }
     );
   } catch (error) {
-    const message = error.response?.data?.error ?? 'Xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko\'ring.';
+    const message = error.response?.data?.error ?? 'Xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko‘ring.';
     await bot.sendMessage(chatId, `❌ ${message}`);
   } finally {
     resetSession(chatId);
@@ -157,55 +157,61 @@ bot.on('webhook_error', (error) => {
   console.error('Webhook error:', error.message);
 });
 
-async function start() {
-  if (usePolling) {
-    await bot.startPolling();
-    // eslint-disable-next-line no-console
-    console.log('Bot started in polling mode');
-    return;
-  }
-
+async function startBot() {
   const app = express();
   app.use(express.json());
 
-  const defaultPath = `/webhook/${token}`;
-  const webhookPath = webhookPathEnv || defaultPath;
-  const baseWebhookUrl = webhookUrlEnv
-    || process.env.WEBHOOK_BASE_URL
-    || process.env.RENDER_EXTERNAL_URL
-    || '';
-
-  if (!baseWebhookUrl) {
-    throw new Error('Missing TELEGRAM_WEBHOOK_URL or WEBHOOK_BASE_URL environment variable');
-  }
-
-  const normalizedBase = baseWebhookUrl.endsWith('/')
-    ? baseWebhookUrl.slice(0, -1)
-    : baseWebhookUrl;
-  const normalizedPath = webhookPath.startsWith('/')
-    ? webhookPath
-    : `/${webhookPath}`;
-  const fullWebhookUrl = `${normalizedBase}${normalizedPath}`;
-
-  await bot.setWebHook(fullWebhookUrl);
+  app.get('/', (req, res) => {
+    res.type('text/plain').send('PICCO telegram bot is running');
+  });
 
   app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', mode: usePolling ? 'polling' : 'webhook' });
   });
 
-  app.post(normalizedPath, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-  });
+  if (usePolling) {
+    await bot.deleteWebHook({ drop_pending_updates: false });
+    await bot.startPolling();
+    // eslint-disable-next-line no-console
+    console.log('Bot started in polling mode');
+  } else {
+    const defaultPath = `/webhook/${token}`;
+    const webhookPath = webhookPathEnv || defaultPath;
+    const baseWebhookUrl = webhookUrlEnv
+      || process.env.WEBHOOK_BASE_URL
+      || process.env.RENDER_EXTERNAL_URL
+      || '';
 
-  const PORT = process.env.PORT || 8080;
+    if (!baseWebhookUrl) {
+      throw new Error('Missing TELEGRAM_WEBHOOK_URL or WEBHOOK_BASE_URL environment variable');
+    }
+
+    const normalizedBase = baseWebhookUrl.endsWith('/')
+      ? baseWebhookUrl.slice(0, -1)
+      : baseWebhookUrl;
+    const normalizedPath = webhookPath.startsWith('/')
+      ? webhookPath
+      : `/${webhookPath}`;
+    const fullWebhookUrl = `${normalizedBase}${normalizedPath}`;
+
+    await bot.setWebHook(fullWebhookUrl, { drop_pending_updates: true });
+
+    app.post(normalizedPath, (req, res) => {
+      bot.processUpdate(req.body);
+      res.sendStatus(200);
+    });
+
+    // eslint-disable-next-line no-console
+    console.log(`Webhook set to ${fullWebhookUrl}`);
+  }
+
   app.listen(PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`Webhook server listening on port ${PORT}`);
+    console.log(`Bot service listening on port ${PORT}`);
   });
 }
 
-start().catch((error) => {
+startBot().catch((error) => {
   // eslint-disable-next-line no-console
   console.error('Failed to start bot:', error);
   process.exit(1);

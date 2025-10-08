@@ -4,7 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Login | PICCO</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2563eb',
+              secondary: '#1f2937',
+              accent: '#0ea5e9'
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif']
+            }
+          }
+        }
+      };
+    </script>
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
