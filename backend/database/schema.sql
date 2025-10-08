@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS public.products (
     description TEXT,
     price NUMERIC(10,2) NOT NULL,
     stock INT DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now())
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()),
+    CONSTRAINT products_name_key UNIQUE (name)
 );
 
 -- Stores
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS public.stores (
     address TEXT,
     location JSONB,
     agent_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now())
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()),
+    CONSTRAINT stores_name_key UNIQUE (name)
 );
 
 -- Orders

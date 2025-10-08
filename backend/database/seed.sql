@@ -22,22 +22,40 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Demo orders
+WITH ali AS (
+  SELECT id FROM public.users WHERE name = 'Ali Valiyev'
+),
+classic AS (
+  SELECT id FROM public.products WHERE name = 'Nam salfetka Classic'
+),
+andijon AS (
+  SELECT id FROM public.stores WHERE name = 'Andijon Market'
+)
 INSERT INTO public.orders (user_id, product_id, store_id, quantity)
-SELECT 
-  (SELECT id FROM public.users WHERE name='Ali Valiyev'),
-  (SELECT id FROM public.products WHERE name='Nam salfetka Classic'),
-  (SELECT id FROM public.stores WHERE name='Andijon Market'),
-  100
+SELECT ali.id, classic.id, andijon.id, 100
+FROM ali, classic, andijon
 WHERE NOT EXISTS (
-  SELECT 1 FROM public.orders WHERE quantity = 100
+  SELECT 1 FROM public.orders
+  WHERE user_id = ali.id
+    AND product_id = classic.id
+    AND store_id = andijon.id
 );
 
+WITH aziz AS (
+  SELECT id FROM public.users WHERE name = 'Aziz Karimov'
+),
+diaper AS (
+  SELECT id FROM public.products WHERE name = 'Bolalar tagligi'
+),
+tashkent AS (
+  SELECT id FROM public.stores WHERE name = 'Toshkent Savdo'
+)
 INSERT INTO public.orders (user_id, product_id, store_id, quantity)
-SELECT 
-  (SELECT id FROM public.users WHERE name='Aziz Karimov'),
-  (SELECT id FROM public.products WHERE name='Bolalar tagligi'),
-  (SELECT id FROM public.stores WHERE name='Toshkent Savdo'),
-  50
+SELECT aziz.id, diaper.id, tashkent.id, 50
+FROM aziz, diaper, tashkent
 WHERE NOT EXISTS (
-  SELECT 1 FROM public.orders WHERE quantity = 50
+  SELECT 1 FROM public.orders
+  WHERE user_id = aziz.id
+    AND product_id = diaper.id
+    AND store_id = tashkent.id
 );
