@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mahsulotlar | PICCO Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script src="../../config.js"></script>
+  </head>
+  <body data-page="admin-products" class="min-h-screen bg-slate-100">
+    <header class="bg-white border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-900">Mahsulotlar boshqaruvi</h1>
+          <p class="text-sm text-slate-500">Mahsulotlar ro'yxatini boshqarish va tahrirlash.</p>
+        </div>
+        <nav class="flex items-center space-x-4 text-sm font-medium text-slate-600">
+          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
+          <a href="./products.html" class="text-emerald-600">Mahsulotlar</a>
+          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
+          <a href="./agents.html" class="hover:text-emerald-600">Agentlar</a>
+          <a href="./stats.html" class="hover:text-emerald-600">Statistika</a>
+          <a href="./settings.html" class="hover:text-emerald-600">Sozlamalar</a>
+          <button data-action="logout" class="text-red-600">Chiqish</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 id="product-form-title" class="text-lg font-semibold text-slate-900">Yangi mahsulot qo'shish</h2>
+        </div>
+        <form id="product-form" class="px-6 py-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-name">Mahsulot nomi</label>
+            <input name="name" id="product-name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-description">Ta'rif</label>
+            <input name="description" id="product-description" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-price">Narx (UZS)</label>
+            <input name="price" id="product-price" type="number" min="0" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-stock">Soni</label>
+            <input name="stock" id="product-stock" type="number" min="0" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div class="md:col-span-4 flex items-center gap-3">
+            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition">
+              Saqlash
+            </button>
+            <button type="button" id="product-form-cancel" class="px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:border-slate-300 transition">
+              Bekor qilish
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Mahsulotlar ro'yxati</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th class="px-3 py-2 text-left">Mahsulot</th>
+                <th class="px-3 py-2 text-left">Ta'rif</th>
+                <th class="px-3 py-2 text-right">Narx</th>
+                <th class="px-3 py-2 text-center">Soni</th>
+                <th class="px-3 py-2 text-right">Harakatlar</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body" class="text-sm text-slate-600"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+
+    <script type="module" src="../../js/admin.js"></script>
+  </body>
+</html>

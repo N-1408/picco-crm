@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: picco-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
+    plan: starter
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://<your-vercel-domain>
+  - type: worker
+    name: picco-telegram-bot
+    env: node
+    rootDir: bot
+    buildCommand: npm install
+    startCommand: npm run start
+    plan: starter
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: BACKEND_BASE_URL
+        value: https://<your-backend-on-render>/api
+      - key: WEBAPP_URL
+        value: https://<your-vercel-domain>
+      - key: AGENT_WEBAPP_PATH
+        value: /pages/agent/dashboard.html
+      - key: ADMIN_WEBAPP_PATH
+        value: /pages/admin/login.html
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statistika | PICCO Agent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script src="../../config.js"></script>
+  </head>
+  <body data-page="agent-stats" class="min-h-screen bg-slate-100">
+    <header class="bg-white border-b border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-900">Agent statistikasi</h1>
+          <p class="text-sm text-slate-500">Sotuvlar va oylik dinamikani kuzating.</p>
+        </div>
+        <nav class="flex items-center space-x-3 text-sm font-medium text-slate-600">
+          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
+          <a href="./orders.html" class="hover:text-emerald-600">Buyurtmalar</a>
+          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
+          <a href="./stats.html" class="text-emerald-600">Statistika</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6" id="agent-fallback">
+      <section id="agent-stats-summary"></section>
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Oylik tushum grafigi</h2>
+        <canvas id="agent-stats-chart" height="240"></canvas>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="../../js/agent.js"></script>
+  </body>
+</html>

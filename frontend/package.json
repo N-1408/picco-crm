@@ -1,0 +1,10 @@
+{
+  "name": "picco-frontend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/generate-config.mjs",
+    "vercel-build": "node scripts/generate-config.mjs"
+  }
+}
+

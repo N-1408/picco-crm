@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statistika | PICCO Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script src="../../config.js"></script>
+  </head>
+  <body data-page="admin-stats" class="min-h-screen bg-slate-100">
+    <header class="bg-white border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-900">Umumiy statistika</h1>
+          <p class="text-sm text-slate-500">Sotuvlar, agentlar va mahsulotlar bo'yicha tahlil.</p>
+        </div>
+        <nav class="flex items-center space-x-4 text-sm font-medium text-slate-600">
+          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
+          <a href="./products.html" class="hover:text-emerald-600">Mahsulotlar</a>
+          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
+          <a href="./agents.html" class="hover:text-emerald-600">Agentlar</a>
+          <a href="./stats.html" class="text-emerald-600">Statistika</a>
+          <a href="./settings.html" class="hover:text-emerald-600">Sozlamalar</a>
+          <button data-action="logout" class="text-red-600">Chiqish</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Agentlar bo'yicha tushum</h2>
+          <canvas id="stats-agent-chart" height="220"></canvas>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Mahsulotlar ulushi</h2>
+          <canvas id="stats-product-chart" height="220"></canvas>
+        </div>
+      </section>
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold text-slate-900">Oylik sotuv dinamikasi</h2>
+          <div class="space-x-2">
+            <a
+              href="#"
+              data-export="excel"
+              class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-emerald-400 transition"
+            >
+              Excel eksport
+            </a>
+            <a
+              href="#"
+              data-export="pdf"
+              class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-emerald-400 transition"
+            >
+              PDF eksport
+            </a>
+          </div>
+        </div>
+        <canvas id="stats-monthly-chart" height="260"></canvas>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="../../js/admin.js"></script>
+  </body>
+</html>

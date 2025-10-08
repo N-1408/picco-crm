@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | PICCO</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
+    <script src="../../config.js"></script>
+  </head>
+  <body data-page="admin-dashboard" class="min-h-screen bg-slate-100">
+    <header class="bg-white border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-900">PICCO Admin paneli</h1>
+          <p class="text-sm text-slate-500">Boshqaruv, statistika va nazorat.</p>
+        </div>
+        <nav class="flex items-center space-x-4 text-sm font-medium text-slate-600">
+          <a href="./dashboard.html" class="text-emerald-600">Dashboard</a>
+          <a href="./products.html" class="hover:text-emerald-600">Mahsulotlar</a>
+          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
+          <a href="./agents.html" class="hover:text-emerald-600">Agentlar</a>
+          <a href="./stats.html" class="hover:text-emerald-600">Statistika</a>
+          <a href="./settings.html" class="hover:text-emerald-600">Sozlamalar</a>
+          <button data-action="logout" class="text-red-600">Chiqish</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      <section id="admin-dashboard-overview"></section>
+
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Top agentlar</h2>
+        </div>
+        <div class="px-6 py-4" id="admin-top-agents"></div>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="../../js/admin.js"></script>
+  </body>
+</html>
