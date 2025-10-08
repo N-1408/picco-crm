@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Do'konlar | PICCO Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1C9QX4TctnWMn13TZye+giMm8e2Lw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <script>
       tailwind.config = {
         theme: {
@@ -31,38 +38,36 @@
           <span class="picco-brand__logo">PICCO</span>
           <span class="picco-brand__subtitle">Admin paneli</span>
         </div>
-        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Menyuni ochish">
+          <i class="fa-solid fa-bars"></i>
         </button>
         <nav class="picco-nav" data-menu>
           <a href="./dashboard.html" class="picco-nav__link" data-nav-link="admin-dashboard">
-            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-gauge-high"></i>
             <span>Dashboard</span>
           </a>
           <a href="./products.html" class="picco-nav__link" data-nav-link="admin-products">
-            <i data-lucide="package" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-box"></i>
             <span>Mahsulotlar</span>
           </a>
           <a href="./stores.html" class="picco-nav__link" data-nav-link="admin-stores">
-            <i data-lucide="building-2" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-store"></i>
             <span>Do'konlar</span>
           </a>
           <a href="./agents.html" class="picco-nav__link" data-nav-link="admin-agents">
-            <i data-lucide="users-round" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-user-group"></i>
             <span>Agentlar</span>
           </a>
           <a href="./stats.html" class="picco-nav__link" data-nav-link="admin-stats">
-            <i data-lucide="chart-line" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-chart-column"></i>
             <span>Statistika</span>
           </a>
           <a href="./settings.html" class="picco-nav__link" data-nav-link="admin-settings">
-            <i data-lucide="settings-2" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-sliders"></i>
             <span>Sozlamalar</span>
           </a>
           <button type="button" class="picco-nav__link picco-nav__link--danger" data-action="logout">
-            <i data-lucide="log-out" class="picco-nav__icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Chiqish</span>
           </button>
         </nav>
@@ -71,34 +76,48 @@
 
     <main class="picco-main">
       <div class="picco-main__inner space-y-8">
+        <a href="#" class="picco-back" data-back-button>
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Orqaga</span>
+        </a>
+
         <section class="picco-section-intro">
           <h1 class="text-2xl font-semibold text-slate-100">Do'konlar</h1>
-          <p class="text-sm text-slate-300">Agentlarga biriktirilgan savdo nuqtalarini boshqaring.</p>
+          <p class="text-sm text-slate-300">Agentlarga biriktirilgan do'konlarni boshqaring.</p>
         </section>
 
-        <section class="picco-surface space-y-6">
+        <section class="picco-surface space-y-4">
           <div class="picco-surface__header">
-            <h2 class="picco-surface__title">Do'konni qo'shish / tahrirlash</h2>
-          </div>
-          <form id="store-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="picco-form-label" for="admin-store-name">Do'kon nomi</label>
-              <input name="name" id="admin-store-name" required class="picco-input" />
-            </div>
-            <div>
-              <label class="picco-form-label" for="admin-store-phone">Telefon</label>
-              <input name="phone" id="admin-store-phone" class="picco-input" />
-            </div>
-            <div>
-              <label class="picco-form-label" for="admin-store-address">Manzil</label>
-              <input name="address" id="admin-store-address" class="picco-input" />
-            </div>
-            <div class="md:col-span-3 flex justify-end gap-3">
-              <button type="submit" id="store-submit" class="picco-btn picco-btn--primary">
-                Qo'shish
+            <h2 class="picco-surface__title">Do'kon qo'shish</h2>
+            <div class="picco-btn-group">
+              <button class="picco-btn picco-btn--primary" data-collapse-target="store-form-wrapper">
+                <i class="fa-solid fa-plus"></i>
+                Yangi do'kon
               </button>
             </div>
-          </form>
+          </div>
+          <div id="store-form-wrapper" class="picco-collapsible picco-surface__body">
+            <form id="store-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="picco-form-label" for="admin-store-name">Do'kon nomi</label>
+                <input name="name" id="admin-store-name" required class="picco-input" />
+              </div>
+              <div>
+                <label class="picco-form-label" for="admin-store-phone">Telefon</label>
+                <input name="phone" id="admin-store-phone" class="picco-input" />
+              </div>
+              <div>
+                <label class="picco-form-label" for="admin-store-address">Manzil</label>
+                <input name="address" id="admin-store-address" class="picco-input" />
+              </div>
+              <div class="md:col-span-3 flex justify-end gap-3">
+                <button type="submit" id="store-submit" class="picco-btn picco-btn--primary">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Saqlash
+                </button>
+              </div>
+            </form>
+          </div>
         </section>
 
         <section class="picco-surface">
@@ -112,8 +131,61 @@
 
     <footer class="picco-footer">&copy; PICCO 2025</footer>
 
+    <div id="store-edit-modal" class="picco-modal hidden" data-modal>
+      <div class="picco-modal__dialog">
+        <div class="picco-modal__header">
+          <h2 class="picco-modal__title">Do'konni tahrirlash</h2>
+          <button type="button" class="picco-modal__close" data-modal-close aria-label="Yopish">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <form id="store-edit-form" class="picco-modal__body">
+          <input type="hidden" name="id" />
+          <div>
+            <label class="picco-form-label" for="store-edit-name">Do'kon nomi</label>
+            <input id="store-edit-name" name="name" required class="picco-input" />
+          </div>
+          <div>
+            <label class="picco-form-label" for="store-edit-phone">Telefon</label>
+            <input id="store-edit-phone" name="phone" class="picco-input" />
+          </div>
+          <div>
+            <label class="picco-form-label" for="store-edit-address">Manzil</label>
+            <input id="store-edit-address" name="address" class="picco-input" />
+          </div>
+        </form>
+        <div class="picco-modal__footer">
+          <button type="button" class="picco-btn picco-btn--ghost" data-modal-close>Bekor qilish</button>
+          <button type="submit" form="store-edit-form" class="picco-btn picco-btn--primary">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Saqlash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="store-delete-modal" class="picco-modal hidden" data-modal>
+      <div class="picco-modal__dialog">
+        <div class="picco-modal__header">
+          <h2 class="picco-modal__title">Do'konni o'chirish</h2>
+          <button type="button" class="picco-modal__close" data-modal-close aria-label="Yopish">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="picco-modal__body">
+          <p>Tanlangan do'konni o'chirishni tasdiqlaysizmi?</p>
+        </div>
+        <div class="picco-modal__footer">
+          <button type="button" class="picco-btn picco-btn--ghost" data-modal-close>Bekor qilish</button>
+          <button type="button" id="store-delete-confirm" class="picco-btn picco-btn--danger">
+            <i class="fa-solid fa-trash"></i>
+            O'chirish
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/admin.js"></script>
   </body>
 </html>
