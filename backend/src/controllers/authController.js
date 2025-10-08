@@ -11,14 +11,20 @@ export async function registerAgent(req, res, next) {
       return res.status(400).json({ error: 'telegramId, name and phone are required' });
     }
 
+    const numericTelegramId = Number(telegramId);
+    if (!Number.isFinite(numericTelegramId)) {
+      return res.status(400).json({ error: 'telegramId must be a number' });
+    }
+
     const { data: existingUser, error: selectError } = await supabase
       .from('users')
       .select('id')
-      .eq('telegram_id', telegramId)
+      .eq('telegram_id', numericTelegramId)
       .maybeSingle();
 
     if (selectError) {
-      throw selectError;
+      selectError.status = selectError.status ?? 500;
+      return next(selectError);
     }
 
     if (existingUser) {
@@ -26,18 +32,27 @@ export async function registerAgent(req, res, next) {
     }
 
     const { error: insertError } = await supabase.from('users').insert({
-      telegram_id: telegramId,
+      telegram_id: numericTelegramId,
       name,
       phone,
       role: 'agent'
     });
 
     if (insertError) {
-      throw insertError;
+      if (insertError.code === '23505') {
+        return res.status(200).json({ message: 'User already registered' });
+      }
+      if (insertError.code === 'PGRST301' || insertError.status === 401) {
+        return res.status(500).json({ error: 'Supabase service role key is invalid or missing required insert permissions.' });
+      }
+      insertError.status = insertError.status ?? 500;
+      return next(insertError);
     }
 
     return res.status(201).json({ message: 'Agent registered successfully' });
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('registerAgent error:', error);
     return next(error);
   }
 }
@@ -85,10 +100,15 @@ export async function getAgentByTelegram(req, res, next) {
       return res.status(400).json({ error: 'telegramId is required' });
     }
 
+    const numericTelegramId = Number(telegramId);
+    if (!Number.isFinite(numericTelegramId)) {
+      return res.status(400).json({ error: 'telegramId must be a number' });
+    }
+
     const { data: user, error } = await supabase
       .from('users')
       .select('id, name, phone, role, created_at')
-      .eq('telegram_id', telegramId)
+      .eq('telegram_id', numericTelegramId)
       .maybeSingle();
 
     if (error) throw error;
