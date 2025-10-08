@@ -176,11 +176,23 @@ async function startBot() {
     console.log('Bot started in polling mode');
   } else {
     const defaultPath = `/webhook/${token}`;
-    const webhookPath = webhookPathEnv || defaultPath;
-    const baseWebhookUrl = webhookUrlEnv
-      || process.env.WEBHOOK_BASE_URL
-      || process.env.RENDER_EXTERNAL_URL
-      || '';
+    let webhookPath = webhookPathEnv || defaultPath;
+    let baseWebhookUrl = process.env.WEBHOOK_BASE_URL || process.env.RENDER_EXTERNAL_URL || '';
+
+    if (webhookUrlEnv) {
+      try {
+        const parsed = new URL(webhookUrlEnv);
+        baseWebhookUrl = `${parsed.protocol}//${parsed.host}`;
+        if (!webhookPathEnv) {
+          webhookPath = parsed.pathname && parsed.pathname !== '/'
+            ? parsed.pathname
+            : defaultPath;
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('Invalid TELEGRAM_WEBHOOK_URL provided, falling back to base URL variables');
+      }
+    }
 
     if (!baseWebhookUrl) {
       throw new Error('Missing TELEGRAM_WEBHOOK_URL or WEBHOOK_BASE_URL environment variable');
