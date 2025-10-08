@@ -1,24 +1,26 @@
-﻿# PICCO Mini App CRM
+﻿# picco-crm
 
-Full-stack Telegram Mini App CRM for PICCO agents and admins, including Telegram bot onboarding, Express backend with Supabase, and responsive WebApp dashboards for agents and admins.
+## PICCO Mini App CRM
+
+Full-stack Telegram Mini App CRM for PICCO agents and admins, including Telegram bot onboarding, an Express backend powered by Supabase, and responsive WebApp dashboards for both roles.
 
 ## Monorepo Structure
 
-- `backend/` – Express.js API (Supabase/PostgreSQL, JWT auth, admin/agent endpoints)
-- `bot/` – `node-telegram-bot-api` bot handling onboarding and Mini App deep links
-- `frontend/` – Static Telegram WebApp (Tailwind CDN, vanilla JS modules)
-- `backend/database/` – SQL schema and seed scripts
+- `backend/` - Express.js API (Supabase/PostgreSQL, JWT auth, admin/agent endpoints)
+- `bot/` - `node-telegram-bot-api` bot handling onboarding and Mini App deep links
+- `frontend/` - Static Telegram WebApp (Tailwind CDN, vanilla JS modules)
+- `backend/database/` - SQL schema and seed scripts
 
 ## Prerequisites
 
 - Node.js 18+
-- PostgreSQL / Supabase project
+- Supabase project (PostgreSQL)
 - Telegram Bot token
-- Vercel (or any static hosting) for the frontend
+- Vercel account (or any static hosting) for the frontend
 
 ## Environment Variables
 
-Duplicate the provided `.env.example` files and fill in your secrets:
+Duplicate the provided `.env.example` files and fill in your secrets.
 
 ### Backend (`backend/.env`)
 ```
@@ -44,7 +46,7 @@ The frontend reads `window.__PICCO_CONFIG` from `config.js`. During local develo
 
 ## Database Setup
 
-Use Supabase SQL editor (or psql) to run the schema and seed scripts:
+Use the Supabase SQL editor (or `psql`) to run the schema and seed scripts:
 
 1. `backend/database/schema.sql`
 2. `backend/database/seed.sql`
@@ -61,7 +63,7 @@ cd ../bot
 npm install
 ```
 
-Frontend is static (Tailwind CDN). Update `frontend/config.js` (or run `npm run build` inside `frontend/`) before serving so the API base URL points to your backend. If you prefer local dev server, serve `frontend/` with any static server (e.g. `npx http-server frontend`).
+Frontend is static (Tailwind CDN). Update `frontend/config.js` (or run `npm run build` inside `frontend/`) before serving so the API base URL points to your backend. If you prefer local dev server, serve `frontend/` with any static server (for example `npx http-server frontend`).
 
 ## Running Locally
 
@@ -89,16 +91,16 @@ Or deploy to Vercel/Netlify.
 
 ## Telegram Bot Flow
 
-1. `/start` > ask for full name.
-2. Request contact > register agent via backend (`/api/auth/register`).
+1. `/start` → ask for full name.
+2. Request contact → register agent via backend (`/api/auth/register`).
 3. Success message + inline WebApp buttons (Agent/Admin panels).
-4. If agent already exists, backend returns 200 and bot still opens panel buttons.
+4. If the agent already exists, backend returns 200 and the bot still opens the panel buttons.
 
 ## Backend API Highlights
 
-- `POST /api/auth/register` – Agent registration (Telegram ID + contact)
-- `POST /api/auth/login` – Admin login > JWT
-- `GET /api/auth/agent/:telegramId` – WebApp fetch agent profile
+- `POST /api/auth/register` - Agent registration (Telegram ID + contact)
+- `POST /api/auth/login` - Admin login → JWT
+- `GET /api/auth/agent/:telegramId` - WebApp fetch agent profile
 - Agent endpoints: orders, stores, stats, product catalog
 - Admin endpoints: products CRUD, stores CRUD, agents list, stats, exports, admin management, reset
 
@@ -126,14 +128,14 @@ All admin endpoints require `Authorization: Bearer <token>`.
 ### Render (Backend & Bot)
 
 - Use the supplied `render.yaml` blueprint or create two services manually:
-  - **Web Service (`backend/`)** – Build command `npm install`, start command `npm run start`. Set `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `ALLOWED_ORIGINS` (comma-separated list that includes your Vercel domain).
-  - **Worker (`bot/`)** – Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, and `ADMIN_WEBAPP_PATH`.
+  - **Web Service (`backend/`)** - Build command `npm install`, start command `npm run start`. Set `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, and `ALLOWED_ORIGINS` (comma-separated list that includes your Vercel domain).
+  - **Worker (`bot/`)** - Build command `npm install`, start command `npm run start`. Set `TELEGRAM_BOT_TOKEN`, `BACKEND_BASE_URL` (`https://<render-backend>/api`), `WEBAPP_URL` (Vercel domain), `AGENT_WEBAPP_PATH`, and `ADMIN_WEBAPP_PATH`.
 - On Supabase create the tables via `schema.sql`, seed via `seed.sql`, and copy your project URL + service-role key into Render.
 
 ### Vercel (Frontend)
 
 - Set the project root to `frontend/`.
-- Environment variables (Project Settings > Environment Variables):
+- Environment variables (Project Settings → Environment Variables):
   - `API_BASE_URL=https://<render-backend>/api`
   - Optional overrides: `AGENT_PANEL_URL`, `ADMIN_PANEL_URL`
 - Build command: `npm run build` (writes `config.js`).
@@ -143,7 +145,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 ### Supabase
 
 - Run `backend/database/schema.sql` then `backend/database/seed.sql` in the SQL editor.
-- Enable `pgcrypto` extension if not already enabled (required for `gen_random_uuid()`).
+- Enable the `pgcrypto` extension if not already enabled (required for `gen_random_uuid()`).
 - Create a service-role key with insert/update/delete rights for the tables.
 
 ## Next Steps / TODO
@@ -155,7 +157,6 @@ All admin endpoints require `Authorization: Bearer <token>`.
 
 ## Support
 
-- Telegram bot issues > check polling logs in `bot/src/bot.js`.
-- API debugging > enable Supabase logs, inspect console output from Express server.
-- Frontend enhancements > update `frontend/js/*.js` modules and Tailwind classes.
-
+- Telegram bot issues → check polling logs in `bot/src/bot.js`.
+- API debugging → enable Supabase logs, inspect console output from the Express server.
+- Frontend enhancements → update `frontend/js/*.js` modules and Tailwind classes.
