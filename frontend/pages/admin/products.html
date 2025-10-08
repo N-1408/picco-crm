@@ -24,82 +24,116 @@
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="admin-products" class="min-h-screen bg-slate-100">
-    <header class="bg-white border-b border-slate-200">
-      <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-semibold text-slate-900">Mahsulotlar boshqaruvi</h1>
-          <p class="text-sm text-slate-500">Mahsulotlar ro'yxatini boshqarish va tahrirlash.</p>
+  <body data-page="admin-products" class="picco-body">
+    <header class="picco-header">
+      <div class="picco-header__inner">
+        <div class="picco-brand">
+          <span class="picco-brand__logo">PICCO</span>
+          <span class="picco-brand__subtitle">Admin paneli</span>
         </div>
-        <nav class="flex items-center space-x-4 text-sm font-medium text-slate-600">
-          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
-          <a href="./products.html" class="text-emerald-600">Mahsulotlar</a>
-          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
-          <a href="./agents.html" class="hover:text-emerald-600">Agentlar</a>
-          <a href="./stats.html" class="hover:text-emerald-600">Statistika</a>
-          <a href="./settings.html" class="hover:text-emerald-600">Sozlamalar</a>
-          <button data-action="logout" class="text-red-600">Chiqish</button>
+        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="picco-nav" data-menu>
+          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="admin-dashboard">
+            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="./products.html" class="picco-nav__link" data-nav-link="admin-products">
+            <i data-lucide="package" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Mahsulotlar</span>
+          </a>
+          <a href="./stores.html" class="picco-nav__link" data-nav-link="admin-stores">
+            <i data-lucide="building-2" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Do'konlar</span>
+          </a>
+          <a href="./agents.html" class="picco-nav__link" data-nav-link="admin-agents">
+            <i data-lucide="users-round" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Agentlar</span>
+          </a>
+          <a href="./stats.html" class="picco-nav__link" data-nav-link="admin-stats">
+            <i data-lucide="chart-line" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Statistika</span>
+          </a>
+          <a href="./settings.html" class="picco-nav__link" data-nav-link="admin-settings">
+            <i data-lucide="settings-2" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Sozlamalar</span>
+          </a>
+          <button type="button" class="picco-nav__link picco-nav__link--danger" data-action="logout">
+            <i data-lucide="log-out" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Chiqish</span>
+          </button>
         </nav>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 py-10 space-y-8">
-      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 id="product-form-title" class="text-lg font-semibold text-slate-900">Yangi mahsulot qo'shish</h2>
-        </div>
-        <form id="product-form" class="px-6 py-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-name">Mahsulot nomi</label>
-            <input name="name" id="product-name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-description">Ta'rif</label>
-            <input name="description" id="product-description" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-price">Narx (UZS)</label>
-            <input name="price" id="product-price" type="number" min="0" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="product-stock">Soni</label>
-            <input name="stock" id="product-stock" type="number" min="0" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" />
-          </div>
-          <div class="md:col-span-4 flex items-center gap-3">
-            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition">
-              Saqlash
-            </button>
-            <button type="button" id="product-form-cancel" class="px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:border-slate-300 transition">
-              Bekor qilish
-            </button>
-          </div>
-        </form>
-      </section>
+    <main class="picco-main">
+      <div class="picco-main__inner space-y-8">
+        <section class="picco-section-intro">
+          <h1 class="text-2xl font-semibold text-slate-100">Mahsulotlar</h1>
+          <p class="text-sm text-slate-300">Ombor holati va narxlarni oson boshqarish.</p>
+        </section>
 
-      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b border-slate-200">
-          <h2 class="text-lg font-semibold text-slate-900">Mahsulotlar ro'yxati</h2>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                <th class="px-3 py-2 text-left">Mahsulot</th>
-                <th class="px-3 py-2 text-left">Ta'rif</th>
-                <th class="px-3 py-2 text-right">Narx</th>
-                <th class="px-3 py-2 text-center">Soni</th>
-                <th class="px-3 py-2 text-right">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody id="products-table-body" class="text-sm text-slate-600"></tbody>
-          </table>
-        </div>
-      </section>
+        <section class="picco-surface space-y-6">
+          <div class="picco-surface__header">
+            <h2 id="product-form-title" class="picco-surface__title">Yangi mahsulot qo'shish</h2>
+          </div>
+          <form id="product-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="picco-form-label" for="product-name">Mahsulot nomi</label>
+              <input name="name" id="product-name" required class="picco-input" />
+            </div>
+            <div>
+              <label class="picco-form-label" for="product-description">Ta'rif</label>
+              <input name="description" id="product-description" class="picco-input" />
+            </div>
+            <div>
+              <label class="picco-form-label" for="product-price">Narx (UZS)</label>
+              <input name="price" id="product-price" type="number" min="0" required class="picco-input" />
+            </div>
+            <div>
+              <label class="picco-form-label" for="product-stock">Soni</label>
+              <input name="stock" id="product-stock" type="number" min="0" class="picco-input" />
+            </div>
+            <div class="md:col-span-4 flex flex-wrap items-center gap-3">
+              <button type="submit" class="picco-btn picco-btn--primary">
+                Saqlash
+              </button>
+              <button type="button" id="product-form-cancel" class="picco-btn picco-btn--ghost">
+                Bekor qilish
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="picco-surface">
+          <div class="picco-surface__header">
+            <h2 class="picco-surface__title">Mahsulotlar ro'yxati</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="picco-table">
+              <thead>
+                <tr>
+                  <th>Mahsulot</th>
+                  <th>Ta'rif</th>
+                  <th class="text-right">Narx</th>
+                  <th class="text-center">Soni</th>
+                  <th class="text-right">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+    <footer class="picco-footer">&copy; PICCO 2025</footer>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/admin.js"></script>
   </body>
 </html>

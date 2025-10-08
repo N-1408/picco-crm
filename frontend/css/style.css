@@ -34,3 +34,456 @@ body {
     transform: translateX(0);
   }
 }
+
+/* PICCO admin layout */
+.picco-body {
+  min-height: 100vh;
+  background: radial-gradient(120% 120% at 110% -10%, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 55%),
+    radial-gradient(80% 120% at -15% 120%, rgba(59, 130, 246, 0.17) 0%, rgba(59, 130, 246, 0) 60%),
+    #0f172a;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+}
+
+.picco-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 64, 175, 0.92) 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.picco-header__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  color: #e2e8f0;
+}
+
+.picco-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.picco-brand__logo {
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  font-size: 0.85rem;
+}
+
+.picco-brand__subtitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.picco-menu-btn {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.55);
+  transition: all 0.2s ease;
+}
+
+.picco-menu-btn span {
+  width: 1.45rem;
+  height: 2px;
+  background: #e2e8f0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.picco-menu-btn.is-open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.picco-menu-btn.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.picco-menu-btn.is-open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.picco-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.picco-nav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 4.25rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.55);
+  color: #cbd5f5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.picco-nav__link:hover {
+  color: #ffffff;
+  border-color: rgba(14, 165, 233, 0.45);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.4);
+}
+
+.picco-nav__link.is-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.35);
+}
+
+.picco-nav__link--danger {
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.4), rgba(190, 24, 93, 0.45));
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #ffe4e6;
+}
+
+.picco-nav__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@media (max-width: 639px) {
+  .picco-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 1rem 1.25rem 1.4rem;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.65);
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .picco-nav.is-open {
+    display: flex;
+  }
+
+  .picco-nav__link {
+    flex: 1 1 calc(50% - 0.6rem);
+  }
+}
+
+@media (min-width: 640px) {
+  .picco-nav {
+    position: static;
+    display: flex !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.picco-main {
+  flex: 1;
+  padding: 2rem 0 3rem;
+}
+
+.picco-main__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.picco-section-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #cbd5f5;
+}
+
+.picco-surface {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.92));
+  border-radius: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.18);
+  padding: 1.75rem;
+}
+
+.picco-surface__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.picco-surface__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.picco-surface__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.picco-footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  padding: 2rem 0 3rem;
+}
+
+.picco-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.45rem;
+}
+
+.picco-input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.95);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.picco-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.picco-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 0.9rem;
+  padding: 0.65rem 1.2rem;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.picco-btn--primary {
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #fff;
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.35);
+}
+
+.picco-btn--primary:hover {
+  transform: translateY(-1px);
+}
+
+.picco-btn--ghost {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.picco-btn--ghost:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.picco-btn--danger {
+  background: linear-gradient(135deg, #dc2626, #f97316);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(248, 113, 113, 0.35);
+}
+
+.picco-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.picco-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+}
+
+.picco-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.4rem 1.2rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: 0 24px 45px rgba(15, 23, 42, 0.18);
+}
+
+.picco-tile__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.picco-tile__body h3 {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.picco-tile__meta {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.picco-tile__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+@media (min-width: 768px) {
+  .picco-tile__actions {
+    flex-direction: row;
+  }
+}
+
+.picco-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.picco-chip:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.picco-chip--danger {
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #b91c1c;
+}
+
+.picco-metric-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.picco-metric {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.4rem;
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+}
+
+.picco-metric__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.picco-metric__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+}
+
+.picco-metric__value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.picco-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.picco-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+}
+
+.picco-list__meta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.picco-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.picco-table thead {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  background: rgba(226, 232, 240, 0.85);
+  color: #1e293b;
+}
+
+.picco-table th,
+.picco-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.picco-btn-group .picco-btn {
+  padding-inline: 1rem;
+  font-size: 0.8rem;
+}

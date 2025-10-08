@@ -21,6 +21,35 @@ import { showToast, renderEmptyState } from './ui.js';
 
 const page = document.body.dataset.page;
 
+function initShell() {
+  const menu = document.querySelector('[data-menu]');
+  const toggle = document.querySelector('[data-menu-toggle]');
+
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      menu.classList.toggle('is-open');
+      toggle.classList.toggle('is-open');
+    });
+  }
+
+  const navLinks = document.querySelectorAll('[data-nav-link]');
+  navLinks.forEach((link) => {
+    if (link.dataset.navLink === page) {
+      link.classList.add('is-active');
+    }
+    link.addEventListener('click', () => {
+      if (window.innerWidth < 640) {
+        menu?.classList.remove('is-open');
+        toggle?.classList.remove('is-open');
+      }
+    });
+  });
+
+  if (window.lucide?.createIcons) {
+    window.lucide.createIcons();
+  }
+}
+
 function ensureAuthenticated() {
   const token = localStorage.getItem('picco_admin_token');
   if (!token) {
@@ -68,6 +97,7 @@ async function initAdminDashboard() {
 
   const overviewEl = document.getElementById('admin-dashboard-overview');
   const topAgentsEl = document.getElementById('admin-top-agents');
+  topAgentsEl?.classList.add('picco-list');
 
   const { agentSales, productShare, monthlySales } = await fetchAdminStats();
 
@@ -243,20 +273,28 @@ async function initStoresPage() {
     }
     storeList.innerHTML = stores
       .map((store) => `
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-start gap-4" data-store-id="${store.id}">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">${store.name}</h3>
-            <p class="text-sm text-gray-500 mt-1">${store.address ?? 'Manzil ko\'rsatilmagan'}</p>
-            <p class="text-sm text-gray-500 mt-1">${store.phone ?? 'Telefon: -'}</p>
-            <p class="text-xs text-gray-400 mt-2">Biriktirilgan agent: ${store.users?.name ?? '—'}</p>
+        <article class="picco-tile" data-store-id="${store.id}">
+          <div class="picco-tile__icon">
+            <i data-lucide="store" aria-hidden="true"></i>
           </div>
-          <div class="flex gap-3 text-sm">
-            <button class="text-emerald-600" data-action="edit" data-id="${store.id}">Tahrirlash</button>
-            <button class="text-red-600" data-action="delete" data-id="${store.id}">O\'chirish</button>
+          <div class="picco-tile__body">
+            <h3>${store.name}</h3>
+            <p class="picco-tile__meta">${store.address ?? 'Manzil ko\'rsatilmagan'}</p>
+            <p class="picco-tile__meta">${store.phone ?? 'Telefon: -'}</p>
+            <p class="picco-tile__meta">Biriktirilgan agent: ${store.users?.name ?? '—'}</p>
           </div>
-        </div>
+          <div class="picco-tile__actions">
+            <button class="picco-chip" data-action="edit" data-id="${store.id}">
+              <i data-lucide="pencil" class="w-4 h-4" aria-hidden="true"></i>Tahrirlash
+            </button>
+            <button class="picco-chip picco-chip--danger" data-action="delete" data-id="${store.id}">
+              <i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i>O'chirish
+            </button>
+          </div>
+        </article>
       `)
       .join('');
+    window.lucide?.createIcons();
   };
 
   async function refresh() {
@@ -495,6 +533,9 @@ async function initSettingsPage() {
 }
 
 function main() {
+  if (page !== 'admin-login') {
+    initShell();
+  }
   switch (page) {
     case 'admin-login':
       initLoginPage();
@@ -524,3 +565,7 @@ function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+
+
+
+
