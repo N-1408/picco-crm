@@ -24,34 +24,134 @@
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="agent-stats" class="min-h-screen bg-slate-100">
-    <header class="bg-white border-b border-slate-200">
-      <div class="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-semibold text-slate-900">Agent statistikasi</h1>
-          <p class="text-sm text-slate-500">Sotuvlar va oylik dinamikani kuzating.</p>
+  <body data-page="agent-stats" class="picco-body">
+    <header class="picco-header">
+      <div class="picco-header__inner">
+        <div class="picco-brand">
+          <span class="picco-brand__logo">PICCO</span>
+          <span class="picco-brand__subtitle">Agent paneli</span>
         </div>
-        <nav class="flex items-center space-x-3 text-sm font-medium text-slate-600">
-          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
-          <a href="./orders.html" class="hover:text-emerald-600">Buyurtmalar</a>
-          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
-          <a href="./stats.html" class="text-emerald-600">Statistika</a>
+        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="picco-nav" data-menu>
+          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="agent-dashboard">
+            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="./orders.html" class="picco-nav__link" data-nav-link="agent-orders">
+            <i data-lucide="shopping-bag" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Buyurtmalar</span>
+          </a>
+          <a href="./stores.html" class="picco-nav__link" data-nav-link="agent-stores">
+            <i data-lucide="store" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Do'konlar</span>
+          </a>
+          <a href="./stats.html" class="picco-nav__link" data-nav-link="agent-stats">
+            <i data-lucide="activity" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Statistika</span>
+          </a>
         </nav>
       </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6" id="agent-fallback">
-      <section id="agent-stats-summary"></section>
-      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900 mb-4">Oylik tushum grafigi</h2>
-        <canvas id="agent-stats-chart" height="240"></canvas>
-      </section>
+    <main class="picco-main">
+      <div class="picco-main__inner space-y-8">
+        <section class="picco-section-intro">
+          <h1 class="text-2xl font-semibold text-slate-100">Statistika</h1>
+          <p class="text-sm text-slate-300">Agent faoliyati bo'yicha chuqur tahlillar.</p>
+        </section>
+
+        <section class="picco-surface space-y-4">
+          <div class="picco-surface__header">
+            <h2 class="picco-surface__title">Vaqt oralig'ini tanlang</h2>
+            <div class="picco-btn-group">
+              <button class="picco-btn picco-btn--ghost" data-range="today">
+                <i data-lucide="calendar-day" class="w-4 h-4" aria-hidden="true"></i>Bugun
+              </button>
+              <button class="picco-btn picco-btn--ghost" data-range="week">
+                <i data-lucide="calendar-range" class="w-4 h-4" aria-hidden="true"></i>Oxirgi hafta
+              </button>
+              <button class="picco-btn picco-btn--ghost" data-range="month">
+                <i data-lucide="calendar" class="w-4 h-4" aria-hidden="true"></i>Oxirgi oy
+              </button>
+              <button class="picco-btn picco-btn--ghost" data-range="year">
+                <i data-lucide="calendar-clock" class="w-4 h-4" aria-hidden="true"></i>Yil
+              </button>
+            </div>
+          </div>
+
+          <div class="picco-metric-grid">
+            <article class="picco-metric">
+              <div class="picco-metric__icon">
+                <i data-lucide="wallet" aria-hidden="true"></i>
+              </div>
+              <div>
+                <p class="picco-metric__label">Tushum</p>
+                <p class="picco-metric__value" id="agent-stats-revenue">0 UZS</p>
+              </div>
+            </article>
+            <article class="picco-metric">
+              <div class="picco-metric__icon">
+                <i data-lucide="package" aria-hidden="true"></i>
+              </div>
+              <div>
+                <p class="picco-metric__label">Buyurtmalar</p>
+                <p class="picco-metric__value" id="agent-stats-orders">0</p>
+              </div>
+            </article>
+            <article class="picco-metric">
+              <div class="picco-metric__icon">
+                <i data-lucide="map-pin" aria-hidden="true"></i>
+              </div>
+              <div>
+                <p class="picco-metric__label">Faol do'konlar</p>
+                <p class="picco-metric__value" id="agent-stats-stores">0</p>
+              </div>
+            </article>
+            <article class="picco-metric">
+              <div class="picco-metric__icon">
+                <i data-lucide="target" aria-hidden="true"></i>
+              </div>
+              <div>
+                <p class="picco-metric__label">Buyurtma o'sishi</p>
+                <p class="picco-metric__value" id="agent-stats-growth">--</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="picco-surface">
+          <div class="picco-surface__header">
+            <h2 class="picco-surface__title">Oylik sotuv dinamikasi</h2>
+          </div>
+          <canvas id="agent-stats-monthly" height="240"></canvas>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="picco-surface">
+            <div class="picco-surface__header">
+              <h2 class="picco-surface__title">Mahsulotlar bo'yicha tushum</h2>
+            </div>
+            <canvas id="agent-stats-products" height="220"></canvas>
+          </div>
+          <div class="picco-surface">
+            <div class="picco-surface__header">
+              <h2 class="picco-surface__title">Do'konlar bo'yicha hajm</h2>
+            </div>
+            <canvas id="agent-stats-stores-chart" height="220"></canvas>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+    <footer class="picco-footer">&copy; PICCO 2025</footer>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/agent.js"></script>
   </body>
 </html>

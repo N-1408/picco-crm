@@ -24,71 +24,97 @@
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="agent-orders" class="min-h-screen bg-slate-100">
-    <header class="bg-white border-b border-slate-200">
-      <div class="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-semibold text-slate-900">Buyurtmalar</h1>
-          <p class="text-sm text-slate-500">Mahsulotlaringiz uchun yangi buyurtmalar yarating.</p>
+  <body data-page="agent-orders" class="picco-body">
+    <header class="picco-header">
+      <div class="picco-header__inner">
+        <div class="picco-brand">
+          <span class="picco-brand__logo">PICCO</span>
+          <span class="picco-brand__subtitle">Agent paneli</span>
         </div>
-        <nav class="flex items-center space-x-3 text-sm font-medium text-slate-600">
-          <a href="./dashboard.html" class="hover:text-emerald-600">Dashboard</a>
-          <a href="./orders.html" class="text-emerald-600">Buyurtmalar</a>
-          <a href="./stores.html" class="hover:text-emerald-600">Do'konlar</a>
-          <a href="./stats.html" class="hover:text-emerald-600">Statistika</a>
+        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="picco-nav" data-menu>
+          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="agent-dashboard">
+            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="./orders.html" class="picco-nav__link" data-nav-link="agent-orders">
+            <i data-lucide="shopping-bag" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Buyurtmalar</span>
+          </a>
+          <a href="./stores.html" class="picco-nav__link" data-nav-link="agent-stores">
+            <i data-lucide="store" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Do'konlar</span>
+          </a>
+          <a href="./stats.html" class="picco-nav__link" data-nav-link="agent-stats">
+            <i data-lucide="activity" class="picco-nav__icon" aria-hidden="true"></i>
+            <span>Statistika</span>
+          </a>
         </nav>
       </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6" id="agent-fallback">
-      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b border-slate-200">
-          <h2 class="text-lg font-semibold text-slate-900">Yangi buyurtma qo'shish</h2>
-        </div>
-        <form id="add-order-form" class="px-6 py-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="order-product">Mahsulot</label>
-            <select id="order-product" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="order-store">Do'kon</label>
-            <select id="order-store" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-2" for="order-quantity">Miqdor</label>
-            <input id="order-quantity" type="number" min="1" value="1" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
-          </div>
-          <div class="md:col-span-3 flex items-end">
-            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition">
-              Buyurtmani saqlash
-            </button>
-          </div>
-        </form>
-      </section>
+    <main class="picco-main">
+      <div class="picco-main__inner space-y-8">
+        <section class="picco-section-intro">
+          <h1 class="text-2xl font-semibold text-slate-100">Buyurtmalar</h1>
+          <p class="text-sm text-slate-300">Mahsulotlaringiz uchun yangi buyurtmalar yarating.</p>
+        </section>
 
-      <section class="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b border-slate-200">
-          <h2 class="text-lg font-semibold text-slate-900">Buyurtmalar ro'yxati</h2>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-              <tr>
-                <th class="px-3 py-2 text-left">Mahsulot</th>
-                <th class="px-3 py-2 text-left">Do'kon</th>
-                <th class="px-3 py-2 text-center">Miqdor</th>
-                <th class="px-3 py-2 text-right">Sana</th>
-              </tr>
-            </thead>
-            <tbody id="orders-table-body" class="text-sm text-slate-600"></tbody>
-          </table>
-        </div>
-      </section>
+        <section class="picco-surface space-y-6">
+          <div class="picco-surface__header">
+            <h2 class="picco-surface__title">Yangi buyurtma qo'shish</h2>
+          </div>
+          <form id="add-order-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+              <label class="picco-form-label" for="order-product">Mahsulot</label>
+              <select id="order-product" class="picco-input"></select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="picco-form-label" for="order-store">Do'kon</label>
+              <select id="order-store" class="picco-input"></select>
+            </div>
+            <div>
+              <label class="picco-form-label" for="order-quantity">Miqdor</label>
+              <input id="order-quantity" type="number" min="1" value="1" class="picco-input" required />
+            </div>
+            <div class="md:col-span-3 flex items-end justify-end">
+              <button type="submit" class="picco-btn picco-btn--primary">
+                <i data-lucide="check-circle" class="w-4 h-4" aria-hidden="true"></i>
+                Buyurtmani saqlash
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="picco-surface">
+          <div class="picco-surface__header">
+            <h2 class="picco-surface__title">Buyurtmalar ro'yxati</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="picco-table">
+              <thead>
+                <tr>
+                  <th>Mahsulot</th>
+                  <th>Do'kon</th>
+                  <th class="text-center">Miqdor</th>
+                  <th class="text-right">Sana</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <footer class="text-center text-xs text-slate-500 py-6">&copy; PICCO 2025</footer>
+    <footer class="picco-footer">&copy; PICCO 2025</footer>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/agent.js"></script>
   </body>
 </html>

@@ -143,7 +143,7 @@ export async function getAgentStats(req, res, next) {
 
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('id, quantity, created_at, products(name, price)')
+      .select('id, quantity, created_at, products(name, price), stores(name)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -158,9 +158,23 @@ export async function getAgentStats(req, res, next) {
       { totalQuantity: 0, totalRevenue: 0 }
     );
 
+    const monthlyMap = new Map();
+    orders.forEach((order) => {
+      const created = new Date(order.created_at);
+      const key = `${created.getFullYear()}-${String(created.getMonth() + 1).padStart(2, '0')}`;
+      const revenue = order.quantity * (order.products?.price ?? 0);
+      monthlyMap.set(key, (monthlyMap.get(key) ?? 0) + revenue);
+    });
+
+    const monthly = Array.from(monthlyMap.entries())
+      .map(([month, totalRevenue]) => ({ month, totalRevenue }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
     return res.json({
       totals,
-      recentOrders: orders.slice(0, 10)
+      monthly,
+      recentOrders: orders.slice(0, 10),
+      orders
     });
   } catch (error) {
     return next(error);
