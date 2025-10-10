@@ -1,12 +1,13 @@
 import TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
 import dotenv from 'dotenv';
 import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config({ path: '.env' });
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:4000/api';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const webAppUrl = process.env.WEBAPP_URL || 'https://picco-mini-app.example.com';
 const agentWebAppPath = process.env.AGENT_WEBAPP_PATH || '/pages/agent/dashboard.html';
 const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/pages/admin/login.html';
@@ -19,12 +20,23 @@ if (!token) {
   throw new Error('Missing TELEGRAM_BOT_TOKEN in environment');
 }
 
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment');
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
+
 const bot = new TelegramBot(token, { polling: false });
 const sessions = new Map();
 
 const keyboards = {
   contact: {
-    keyboard: [[{ text: '📞 Telefon raqamni yuborish', request_contact: true }]],
+    keyboard: [[{ text: 'Telefon raqamni yuborish', request_contact: true }]],
     resize_keyboard: true,
     one_time_keyboard: true
   }
@@ -41,7 +53,6 @@ function buildWebAppUrl(path, telegramId) {
   const base = joinUrl(webAppUrl, path);
   try {
     const url = new URL(base);
-    url.searchParams.set('api', backendBaseUrl);
     if (telegramId) {
       url.searchParams.set('tg_id', telegramId);
     }
@@ -52,23 +63,49 @@ function buildWebAppUrl(path, telegramId) {
 }
 
 function getWebAppKeyboard(telegramId) {
-  const agentUrl = buildWebAppUrl(agentWebAppPath, telegramId);
-  const adminUrl = buildWebAppUrl(adminWebAppPath, telegramId);
   return {
     inline_keyboard: [[
-      { text: '🧾 Agent Paneli', web_app: { url: agentUrl } },
-      { text: '🛠 Admin Paneli', web_app: { url: adminUrl } }
+      { text: 'Agent paneli', web_app: { url: buildWebAppUrl(agentWebAppPath, telegramId) } },
+      { text: 'Admin paneli', web_app: { url: buildWebAppUrl(adminWebAppPath, telegramId) } }
     ]]
   };
 }
 
 async function registerAgent(telegramId, name, phone) {
-  const url = `${backendBaseUrl}/auth/register`;
-  return axios.post(url, {
-    telegramId,
+  const numericTelegramId = Number(telegramId);
+  if (!Number.isFinite(numericTelegramId)) {
+    throw new Error('Telegram ID raqam bo\'lishi kerak.');
+  }
+
+  const { data: existing, error: selectError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', numericTelegramId)
+    .maybeSingle();
+
+  if (selectError) {
+    throw new Error(selectError.message ?? 'Agentni tekshirishda xatolik yuz berdi.');
+  }
+
+  if (existing) {
+    return { alreadyRegistered: true };
+  }
+
+  const { error: insertError } = await supabase.from('users').insert({
+    telegram_id: numericTelegramId,
     name,
-    phone
+    phone,
+    role: 'agent'
   });
+
+  if (insertError) {
+    if (insertError.code === '23505') {
+      return { alreadyRegistered: true };
+    }
+    throw new Error(insertError.message ?? 'Agentni ro\'yxatga qo\'shishda xatolik yuz berdi.');
+  }
+
+  return { alreadyRegistered: false };
 }
 
 function resetSession(chatId) {
@@ -83,7 +120,7 @@ bot.onText(/\/start/, async (msg) => {
 
   const welcome = [
     'Salom! PICCO agentlar paneliga xush kelibsiz.',
-    'Iltimos, to‘liq ism-familiyangizni kiriting.'
+    'Iltimos, to\'liq ism-familiyangizni kiriting.'
   ].join('\n');
 
   await bot.sendMessage(chatId, welcome);
@@ -120,11 +157,13 @@ bot.on('contact', async (msg) => {
       ? msg.contact.phone_number
       : `+${msg.contact.phone_number}`;
 
-    await registerAgent(session.telegramId, session.name, contactPhone);
+    const result = await registerAgent(session.telegramId, session.name, contactPhone);
 
     await bot.sendMessage(
       chatId,
-      'Tabriklaymiz 🎉! Siz muvaffaqiyatli ro‘yxatdan o‘tdingiz va endi PICCO kompaniyasining rasmiy agentisiz.',
+      result.alreadyRegistered
+        ? 'Siz avval ro\'yxatdan o\'tgansiz. PICCO agent paneli siz uchun ochiq.'
+        : 'Tabriklaymiz! Siz muvaffaqiyatli ro\'yxatdan o\'tdingiz va endi PICCO kompaniyasining rasmiy agentisiz.',
       { reply_markup: { remove_keyboard: true } }
     );
 
@@ -134,8 +173,10 @@ bot.on('contact', async (msg) => {
       { reply_markup: getWebAppKeyboard(session.telegramId) }
     );
   } catch (error) {
-    const message = error.response?.data?.error ?? 'Xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko‘ring.';
-    await bot.sendMessage(chatId, `❌ ${message}`);
+    const message = error.message ?? 'Xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko\'ring.';
+    // eslint-disable-next-line no-console
+    console.error('Agent registration failed:', error);
+    await bot.sendMessage(chatId, `X ${message}`);
   } finally {
     resetSession(chatId);
   }
@@ -206,15 +247,24 @@ async function startBot() {
       : `/${webhookPath}`;
     const fullWebhookUrl = `${normalizedBase}${normalizedPath}`;
 
-    await bot.setWebHook(fullWebhookUrl, { drop_pending_updates: true });
+    try {
+      await bot.setWebHook(fullWebhookUrl, { drop_pending_updates: true });
 
-    app.post(normalizedPath, (req, res) => {
-      bot.processUpdate(req.body);
-      res.sendStatus(200);
-    });
+      app.post(normalizedPath, (req, res) => {
+        bot.processUpdate(req.body);
+        res.sendStatus(200);
+      });
 
-    // eslint-disable-next-line no-console
-    console.log(`Webhook set to ${fullWebhookUrl}`);
+      // eslint-disable-next-line no-console
+      console.log(`Webhook set to ${fullWebhookUrl}`);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to set webhook, falling back to polling mode:', error.message);
+      await bot.deleteWebHook({ drop_pending_updates: false });
+      await bot.startPolling();
+      // eslint-disable-next-line no-console
+      console.log('Bot started in polling mode (fallback)');
+    }
   }
 
   app.listen(PORT, () => {
