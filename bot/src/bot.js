@@ -8,6 +8,7 @@ dotenv.config({ path: '.env' });
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const webAppUrl = process.env.WEBAPP_URL || 'https://picco-mini-app.example.com';
 const agentWebAppPath = process.env.AGENT_WEBAPP_PATH || '/pages/agent/dashboard.html';
 const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/pages/admin/login.html';
@@ -20,11 +21,14 @@ if (!token) {
   throw new Error('Missing TELEGRAM_BOT_TOKEN in environment');
 }
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment');
+const supabaseKey = supabaseServiceKey || supabaseAnonKey;
+const usingServiceRole = Boolean(supabaseServiceKey);
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase configuration. Provide SUPABASE_URL and either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -77,17 +81,28 @@ async function registerAgent(telegramId, name, phone) {
     throw new Error('Telegram ID raqam bo\'lishi kerak.');
   }
 
-  const { data: existing, error: selectError } = await supabase
-    .from('users')
-    .select('id')
-    .eq('telegram_id', numericTelegramId)
-    .maybeSingle();
+  let alreadyRegistered = false;
+  try {
+    const { data: existing, error: selectError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', numericTelegramId)
+      .maybeSingle();
 
-  if (selectError) {
-    throw new Error(selectError.message ?? 'Agentni tekshirishda xatolik yuz berdi.');
+    if (selectError) {
+      if (usingServiceRole) {
+        throw new Error(selectError.message ?? 'Agentni tekshirishda xatolik yuz berdi.');
+      }
+    } else if (existing) {
+      alreadyRegistered = true;
+    }
+  } catch (error) {
+    if (usingServiceRole) {
+      throw error;
+    }
   }
 
-  if (existing) {
+  if (alreadyRegistered) {
     return { alreadyRegistered: true };
   }
 
@@ -101,6 +116,9 @@ async function registerAgent(telegramId, name, phone) {
   if (insertError) {
     if (insertError.code === '23505') {
       return { alreadyRegistered: true };
+    }
+    if (insertError.message?.includes('permission denied') || insertError.code === 'PGRST301' || insertError.code === 'PGRST302') {
+      throw new Error('Supabase RLS siyosatlari agent qo\'shish uchun to\'g\'ri sozlanmagan. Anon kalit bilan ishlash uchun INSERT uchun ruxsat bering.');
     }
     throw new Error(insertError.message ?? 'Agentni ro\'yxatga qo\'shishda xatolik yuz berdi.');
   }
