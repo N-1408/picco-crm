@@ -1,4 +1,4 @@
-﻿import {
+import {
   fetchAgentProfile,
   fetchAgentProducts,
   fetchAgentStores,
@@ -11,34 +11,52 @@ import { initTelegram, getTelegramUser } from './telegram.js';
 import { showToast, renderEmptyState } from './ui.js';
 
 const page = document.body.dataset.page;
+const DESKTOP_BREAKPOINT = 1024;
 
-function initAgentShell() {
-  const menu = document.querySelector('[data-menu]');
-  const toggle = document.querySelector('[data-menu-toggle]');
+function setupAgentShell() {
+  const sidebar = document.querySelector('[data-sidebar]');
+  if (!sidebar) return;
 
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      menu.classList.toggle('is-open');
-      toggle.classList.toggle('is-open');
-    });
+  if (window.innerWidth >= DESKTOP_BREAKPOINT) {
+    sidebar.classList.add('is-open');
   }
 
+  const openers = document.querySelectorAll('[data-sidebar-toggle]');
+  const closers = document.querySelectorAll('[data-sidebar-close]');
   const navLinks = document.querySelectorAll('[data-nav-link]');
+
+  const closeSidebar = () => {
+    if (window.innerWidth < DESKTOP_BREAKPOINT) {
+      sidebar.classList.remove('is-open');
+    }
+  };
+
+  openers.forEach((button) => button.addEventListener('click', () => sidebar.classList.add('is-open')));
+  closers.forEach((button) =>
+    button.addEventListener('click', () => {
+      closeSidebar();
+      if (window.history.length > 1) {
+        window.history.back();
+      }
+    })
+  );
+
   navLinks.forEach((link) => {
     if (link.dataset.navLink === page) {
       link.classList.add('is-active');
     }
-    link.addEventListener('click', () => {
-      if (window.innerWidth < 640) {
-        menu?.classList.remove('is-open');
-        toggle?.classList.remove('is-open');
-      }
-    });
+    link.addEventListener('click', () => closeSidebar());
   });
+}
 
-  if (window.lucide?.createIcons) {
-    window.lucide.createIcons();
-  }
+function initCollapsibles() {
+  document.querySelectorAll('[data-collapse-target]').forEach((trigger) => {
+    const targetId = trigger.getAttribute('data-collapse-target');
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    trigger.addEventListener('click', () => target.classList.toggle('is-open'));
+  });
 }
 
 const agentCacheKey = 'picco_agent_profile';
@@ -85,19 +103,17 @@ async function resolveAgentContext() {
   return { telegramId, profile: user };
 }
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(value ?? 0);
-}
+const formatCurrency = (value) =>
+  new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(value ?? 0);
 
-function formatDate(value) {
-  return new Intl.DateTimeFormat('uz-UZ', {
+const formatDate = (value) =>
+  new Intl.DateTimeFormat('uz-UZ', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   }).format(new Date(value));
-}
 
 function getRangeBounds(range) {
   const end = new Date();
@@ -133,51 +149,56 @@ function filterOrdersByBounds(orders, bounds) {
   const startTime = bounds.start.getTime();
   const endTime = bounds.end.getTime();
   return orders.filter((order) => {
-    const timestamp = new Date(order.created_at).getTime();
+    const createdRaw = order.created_at ?? order.createdAt;
+    const timestamp = new Date(createdRaw).getTime();
     return Number.isFinite(timestamp) && timestamp >= startTime && timestamp <= endTime;
   });
 }
 
 function filterOrdersByRange(orders, range) {
-  const bounds = getRangeBounds(range);
-  return filterOrdersByBounds(orders, bounds);
+  return filterOrdersByBounds(orders, getRangeBounds(range));
 }
 
 function aggregateOrders(orders) {
   const chartMap = new Map();
   const storeMap = new Map();
   const productMap = new Map();
-  const sorted = [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const sorted = [...orders].sort(
+    (a, b) => new Date(b.created_at ?? b.createdAt) - new Date(a.created_at ?? a.createdAt)
+  );
   let totalQuantity = 0;
   let totalRevenue = 0;
 
   sorted.forEach((order) => {
-    const created = new Date(order.created_at);
-    const revenue = order.quantity * (order.products?.price ?? 0);
-    const chartKey = created.toISOString().split('T')[0];
+    const createdRaw = order.created_at ?? order.createdAt;
+    const created = new Date(createdRaw);
+    if (!Number.isFinite(created.getTime())) return;
 
-    totalQuantity += order.quantity;
+    const quantity = Number(order.quantity ?? 0);
+    const price = Number(order.products?.price ?? order.productPrice ?? order.price ?? 0);
+    const revenue = quantity * price;
+
+    totalQuantity += quantity;
     totalRevenue += revenue;
 
+    const chartKey = created.toISOString().split('T')[0];
     chartMap.set(chartKey, (chartMap.get(chartKey) ?? 0) + revenue);
 
-    const storeName = order.stores?.name ?? "Noma'lum do'kon";
+    const storeName = order.storeName ?? order.stores?.name ?? "Noma'lum do'kon";
     storeMap.set(storeName, (storeMap.get(storeName) ?? 0) + revenue);
 
-    const productName = order.products?.name ?? 'Mahsulot';
+    const productName = order.productName ?? order.products?.name ?? 'Mahsulot';
     productMap.set(productName, (productMap.get(productName) ?? 0) + revenue);
   });
 
   const chartEntries = Array.from(chartMap.entries()).sort((a, b) => new Date(a[0]) - new Date(b[0]));
-  const chartLabels = chartEntries.map(([label]) => label);
-  const chartData = chartEntries.map(([, value]) => value);
 
   return {
     totalQuantity,
     totalRevenue,
-    lastOrder: sorted[0]?.created_at ?? null,
-    chartLabels,
-    chartData,
+    lastOrder: sorted[0]?.created_at ?? sorted[0]?.createdAt ?? null,
+    chartLabels: chartEntries.map(([label]) => label),
+    chartData: chartEntries.map(([, value]) => value),
     storeSeries: Array.from(storeMap.entries()).sort((a, b) => b[1] - a[1]),
     productSeries: Array.from(productMap.entries()).sort((a, b) => b[1] - a[1]),
     uniqueStores: storeMap.size,
@@ -190,22 +211,20 @@ function calculateGrowth(currentRevenue, previousRevenue) {
   if (!previousRevenue) return '+100%';
   const change = ((currentRevenue - previousRevenue) / Math.max(previousRevenue, 1)) * 100;
   if (!Number.isFinite(change)) return '--';
-  return ${change >= 0 ? '+' : ''}%;
+  const formatted = Math.abs(change).toFixed(1);
+  return `${change >= 0 ? '+' : '-'}${formatted}%`;
 }
 
 function setActiveRangeButtons(buttons, active) {
   buttons.forEach((button) => {
-    if (button.dataset.range === active) {
-      button.classList.remove('picco-btn--ghost');
-      button.classList.add('picco-btn--primary');
-    } else {
-      button.classList.remove('picco-btn--primary');
-      button.classList.add('picco-btn--ghost');
-    }
+    const isActive = button.dataset.range === active;
+    button.classList.toggle('picco-btn--primary', isActive);
+    button.classList.toggle('picco-btn--ghost', !isActive);
   });
 }
 
 function renderRecentOrders(container, orders) {
+  if (!container) return;
   if (!orders.length) {
     renderEmptyState(container, 'Hali buyurtmalar mavjud emas.');
     return;
@@ -213,29 +232,32 @@ function renderRecentOrders(container, orders) {
 
   container.innerHTML = orders
     .slice(0, 5)
-    .map((order) => 
-      <li class="picco-list__item">
-        <div class="flex items-center gap-3">
-          <span class="picco-list__icon">
-            <i data-lucide="package" aria-hidden="true"></i>
-          </span>
-          <div>
-            <p class="font-semibold text-slate-800"></p>
-            <p class="picco-list__meta"></p>
+    .map((order) => {
+      const productName = order.productName ?? order.products?.name ?? 'Mahsulot';
+      const storeName = order.storeName ?? order.stores?.name ?? "Noma'lum do'kon";
+      const quantity = order.quantity ?? 0;
+      const createdRaw = order.created_at ?? order.createdAt;
+      return `
+        <li class="picco-list__item">
+          <div class="flex items-center gap-3">
+            <span class="picco-list__icon material-icons">inventory_2</span>
+            <div>
+              <p class="font-semibold">${productName}</p>
+              <p class="picco-list__meta">${storeName}</p>
+            </div>
           </div>
-        </div>
-        <div class="text-right">
-          <p class="font-semibold text-slate-800">x</p>
-          <p class="picco-list__meta"></p>
-        </div>
-      </li>
-    )
+          <div class="text-right">
+            <p class="font-semibold">${quantity} dona</p>
+            <p class="picco-list__meta">${createdRaw ? formatDate(createdRaw) : '--'}</p>
+          </div>
+        </li>
+      `;
+    })
     .join('');
-
-  window.lucide?.createIcons();
 }
 
 async function initDashboardPage(context) {
+  const welcomeHeading = document.getElementById('agent-welcome');
   const ordersEl = document.getElementById('agent-orders-count');
   const revenueEl = document.getElementById('agent-revenue-total');
   const lastOrderEl = document.getElementById('agent-last-order');
@@ -243,6 +265,10 @@ async function initDashboardPage(context) {
   const recentList = document.getElementById('agent-recent-orders');
   const chartCanvas = document.getElementById('agent-dashboard-chart');
   const rangeButtons = document.querySelectorAll('[data-range]');
+
+  if (welcomeHeading) {
+    welcomeHeading.textContent = `Salom, ${context.profile.name}!`;
+  }
 
   const { orders = [], recentOrders = [], monthly = [] } = await fetchAgentStats(context.profile.id);
   const allOrders = orders.length ? orders : recentOrders;
@@ -268,7 +294,7 @@ async function initDashboardPage(context) {
     const labels = summary.chartLabels.length ? summary.chartLabels : monthly.map((item) => item.month);
     const data = summary.chartData.length ? summary.chartData : monthly.map((item) => item.totalRevenue ?? 0);
 
-    if (chartCanvas) {
+    if (chartCanvas && window.Chart) {
       if (!dashboardChart) {
         dashboardChart = new window.Chart(chartCanvas.getContext('2d'), {
           type: 'line',
@@ -280,8 +306,8 @@ async function initDashboardPage(context) {
                 data,
                 fill: true,
                 tension: 0.4,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.22)'
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.25)'
               }
             ]
           },
@@ -302,8 +328,6 @@ async function initDashboardPage(context) {
         dashboardChart.update();
       }
     }
-
-    window.lucide?.createIcons();
   };
 
   rangeButtons.forEach((button) => {
@@ -319,6 +343,8 @@ async function initOrdersPage(context) {
   const quantityInput = document.getElementById('order-quantity');
   const ordersTableBody = document.getElementById('orders-table-body');
   const addOrderForm = document.getElementById('add-order-form');
+  const formWrapper = document.getElementById('order-form-wrapper');
+  const cancelButton = document.getElementById('order-form-cancel');
 
   const [{ products }, { stores }, { orders }] = await Promise.all([
     fetchAgentProducts(),
@@ -328,62 +354,77 @@ async function initOrdersPage(context) {
 
   if (productsSelect) {
     productsSelect.innerHTML = products
-      .map((product) => <option value=""> — </option>)
+      .map((product) => `<option value="${product.id}">${product.name}</option>`)
       .join('');
   }
 
   if (storesSelect) {
-    storesSelect.innerHTML = stores.map((store) => <option value=""></option>).join('');
+    storesSelect.innerHTML = stores.map((store) => `<option value="${store.id}">${store.name}</option>`).join('');
   }
 
-  const renderOrderRow = (order) => 
-    <tr>
-      <td></td>
-      <td></td>
-      <td class="text-center"></td>
-      <td class="text-right"></td>
-    </tr>
-  ;
-
-  if (ordersTableBody) {
-    if (!orders.length) {
-      ordersTableBody.innerHTML = 
+  const renderOrders = (items) => {
+    if (!ordersTableBody) return;
+    if (!items.length) {
+      ordersTableBody.innerHTML = `
         <tr>
-          <td colspan="4" class="text-center py-6 text-slate-500">Hali buyurtmalar mavjud emas.</td>
+          <td colspan="4" class="text-center py-6 text-slate-300">Hali buyurtmalar mavjud emas.</td>
         </tr>
-      ;
-    } else {
-      ordersTableBody.innerHTML = orders.map(renderOrderRow).join('');
+      `;
+      return;
     }
-  }
 
-  if (addOrderForm) {
-    addOrderForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const payload = {
-        userId: context.profile.id,
-        productId: productsSelect.value,
-        storeId: storesSelect.value,
-        quantity: Number(quantityInput.value || 0)
-      };
+    ordersTableBody.innerHTML = items
+      .map((order) => {
+        const productName = order.productName ?? order.products?.name ?? 'Mahsulot';
+        const storeName = order.storeName ?? order.stores?.name ?? "Noma'lum do'kon";
+        const createdRaw = order.created_at ?? order.createdAt;
+        return `
+          <tr>
+            <td>${productName}</td>
+            <td>${storeName}</td>
+            <td class="text-center">${order.quantity ?? 0}</td>
+            <td class="text-right">${createdRaw ? formatDate(createdRaw) : '--'}</td>
+          </tr>
+        `;
+      })
+      .join('');
+  };
 
-      try {
-        await createAgentOrder(payload);
-        showToast('Buyurtma muvaffaqiyatli qo\'shildi.', 'success');
-        quantityInput.value = '1';
+  renderOrders(orders);
 
-        const { orders: updatedOrders } = await fetchAgentOrders(context.profile.id);
-        ordersTableBody.innerHTML = updatedOrders.map(renderOrderRow).join('');
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
-    });
-  }
+  cancelButton?.addEventListener('click', () => {
+    addOrderForm?.reset();
+    formWrapper?.classList.remove('is-open');
+  });
+
+  addOrderForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+      userId: context.profile.id,
+      productId: productsSelect.value,
+      storeId: storesSelect.value,
+      quantity: Number(quantityInput.value || 0)
+    };
+
+    try {
+      await createAgentOrder(payload);
+      showToast('Buyurtma muvaffaqiyatli qo\'shildi.', 'success');
+      quantityInput.value = '1';
+      formWrapper?.classList.remove('is-open');
+      const { orders: updatedOrders } = await fetchAgentOrders(context.profile.id);
+      renderOrders(updatedOrders);
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  });
 }
 
 async function initStoresPage(context) {
   const storeList = document.getElementById('agent-stores-list');
   const storeForm = document.getElementById('agent-store-form');
+  const formWrapper = document.getElementById('agent-store-form-wrapper');
+  const cancelButton = document.getElementById('agent-store-cancel');
+  if (!storeList || !storeForm) return;
 
   const { stores } = await fetchAgentStores(context.profile.id);
 
@@ -394,50 +435,53 @@ async function initStoresPage(context) {
     }
 
     storeList.innerHTML = items
-      .map((store) => 
-        <article class="picco-tile" data-store-id="">
-          <div class="picco-tile__icon">
-            <i data-lucide="store" aria-hidden="true"></i>
-          </div>
+      .map(
+        (store) => `
+        <article class="picco-tile" data-store-id="${store.id}">
+          <span class="picco-tile__icon material-icons">storefront</span>
           <div class="picco-tile__body">
-            <h3></h3>
-            <p class="picco-tile__meta"></p>
-            <p class="picco-tile__meta"></p>
+            <h3>${store.name}</h3>
+            <p class="picco-tile__meta">${store.phone ?? 'Telefon mavjud emas'}</p>
+            <p class="picco-tile__meta">${store.address ?? 'Manzil kiritilmagan'}</p>
           </div>
         </article>
+      `
       )
       .join('');
-
-    window.lucide?.createIcons();
   };
 
   renderCards(stores);
 
-  if (storeForm) {
-    storeForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(storeForm);
-      const payload = {
-        agentId: context.profile.id,
-        name: formData.get('name'),
-        phone: formData.get('phone'),
-        address: formData.get('address')
-      };
+  cancelButton?.addEventListener('click', () => {
+    storeForm.reset();
+    formWrapper?.classList.remove('is-open');
+  });
 
-      try {
-        await createAgentStore(payload);
-        showToast('Do\'kon qo\'shildi', 'success');
-        storeForm.reset();
-        const { stores: updatedStores } = await fetchAgentStores(context.profile.id);
-        renderCards(updatedStores);
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
-    });
-  }
+  storeForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(storeForm);
+    const payload = {
+      agentId: context.profile.id,
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      address: formData.get('address')
+    };
+
+    try {
+      await createAgentStore(payload);
+      showToast('Do\'kon qo\'shildi', 'success');
+      storeForm.reset();
+      formWrapper?.classList.remove('is-open');
+      const { stores: updatedStores } = await fetchAgentStores(context.profile.id);
+      renderCards(updatedStores);
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  });
 }
 
 async function initStatsPage(context) {
+  const rangeButtons = document.querySelectorAll('[data-range]');
   const revenueEl = document.getElementById('agent-stats-revenue');
   const ordersEl = document.getElementById('agent-stats-orders');
   const storesEl = document.getElementById('agent-stats-stores');
@@ -445,23 +489,23 @@ async function initStatsPage(context) {
   const monthlyCanvas = document.getElementById('agent-stats-monthly');
   const productsCanvas = document.getElementById('agent-stats-products');
   const storesCanvas = document.getElementById('agent-stats-stores-chart');
-  const rangeButtons = document.querySelectorAll('[data-range]');
 
   const { orders = [], monthly = [] } = await fetchAgentStats(context.profile.id);
-  const allOrders = orders;
+  const allOrders = orders.length ? orders : [];
 
+  let activeRange = 'month';
   let monthlyChart = null;
   let productsChart = null;
   let storesChart = null;
-  let activeRange = 'month';
 
   const updateStats = (range) => {
     activeRange = range;
     setActiveRangeButtons(rangeButtons, range);
 
     const filtered = filterOrdersByRange(allOrders, range);
+    const previous = filterOrdersByBounds(allOrders, getPreviousRangeBounds(range));
     const summary = aggregateOrders(filtered);
-    const previousSummary = aggregateOrders(filterOrdersByBounds(allOrders, getPreviousRangeBounds(range)));
+    const previousSummary = aggregateOrders(previous);
 
     revenueEl.textContent = formatCurrency(summary.totalRevenue);
     ordersEl.textContent = summary.totalQuantity;
@@ -471,13 +515,7 @@ async function initStatsPage(context) {
     const lineLabels = summary.chartLabels.length ? summary.chartLabels : monthly.map((item) => item.month);
     const lineData = summary.chartData.length ? summary.chartData : monthly.map((item) => item.totalRevenue ?? 0);
 
-    const productLabels = summary.productSeries.map(([label]) => label);
-    const productData = summary.productSeries.map(([, value]) => value);
-
-    const storeLabels = summary.storeSeries.map(([label]) => label);
-    const storeData = summary.storeSeries.map(([, value]) => value);
-
-    if (monthlyCanvas) {
+    if (monthlyCanvas && window.Chart) {
       if (!monthlyChart) {
         monthlyChart = new window.Chart(monthlyCanvas.getContext('2d'), {
           type: 'line',
@@ -487,9 +525,9 @@ async function initStatsPage(context) {
               {
                 label: 'Tushum',
                 data: lineData,
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14, 165, 233, 0.2)',
-                tension: 0.45,
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.25)',
+                tension: 0.4,
                 fill: true
               }
             ]
@@ -512,7 +550,10 @@ async function initStatsPage(context) {
       }
     }
 
-    if (productsCanvas) {
+    const productLabels = summary.productSeries.map(([label]) => label);
+    const productData = summary.productSeries.map(([, value]) => value);
+
+    if (productsCanvas && window.Chart) {
       if (!productsChart) {
         productsChart = new window.Chart(productsCanvas.getContext('2d'), {
           type: 'doughnut',
@@ -522,16 +563,12 @@ async function initStatsPage(context) {
               {
                 label: 'Tushum',
                 data: productData,
-                backgroundColor: ['#2563eb', '#0ea5e9', '#22d3ee', '#1d4ed8', '#0284c7']
+                backgroundColor: ['#38bdf8', '#2563eb', '#0ea5e9', '#a855f7', '#f97316']
               }
             ]
           },
           options: {
-            plugins: {
-              legend: {
-                position: 'bottom'
-              }
-            }
+            plugins: { legend: { position: 'bottom' } }
           }
         });
       } else {
@@ -541,7 +578,10 @@ async function initStatsPage(context) {
       }
     }
 
-    if (storesCanvas) {
+    const storeLabels = summary.storeSeries.map(([label]) => label);
+    const storeData = summary.storeSeries.map(([, value]) => value);
+
+    if (storesCanvas && window.Chart) {
       if (!storesChart) {
         storesChart = new window.Chart(storesCanvas.getContext('2d'), {
           type: 'bar',
@@ -551,7 +591,7 @@ async function initStatsPage(context) {
               {
                 label: 'Tushum',
                 data: storeData,
-                backgroundColor: '#1e3a8a'
+                backgroundColor: '#2563eb'
               }
             ]
           },
@@ -572,21 +612,17 @@ async function initStatsPage(context) {
         storesChart.update();
       }
     }
-
-    window.lucide?.createIcons();
   };
 
-  rangeButtons.forEach((button) => {
-    button.addEventListener('click', () => updateStats(button.dataset.range));
-  });
-
+  rangeButtons.forEach((button) => button.addEventListener('click', () => updateStats(button.dataset.range)));
   updateStats(activeRange);
 }
 
 async function main() {
   try {
     if (page !== 'agent-login') {
-      initAgentShell();
+      setupAgentShell();
+      initCollapsibles();
     }
 
     const context = await resolveAgentContext();
@@ -611,10 +647,10 @@ async function main() {
     const fallback = document.getElementById('agent-fallback');
     if (fallback) {
       fallback.innerHTML = `
-        <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
-          <h2 class="font-semibold mb-2">Xatolik</h2>
-          <p>${error.message}</p>
-          <p class="mt-2 text-sm text-red-600">Iltimos, avval Telegram bot orqali ro'yxatdan o'ting.</p>
+        <div class="picco-surface">
+          <h2 class="text-lg font-semibold text-red-200 mb-2">Xatolik</h2>
+          <p class="text-sm text-red-100">${error.message}</p>
+          <p class="mt-2 text-sm text-red-200">Iltimos, avval Telegram bot orqali ro'yxatdan o'ting.</p>
         </div>
       `;
     }
@@ -622,4 +658,3 @@ async function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
-

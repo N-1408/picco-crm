@@ -21,100 +21,111 @@
         }
       };
     </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="admin-stats" class="picco-body">
-    <header class="picco-header">
-      <div class="picco-header__inner">
-        <div class="picco-brand">
-          <span class="picco-brand__logo">PICCO</span>
-          <span class="picco-brand__subtitle">Admin paneli</span>
+  <body class="picco-body" data-page="admin-stats">
+    <div class="picco-layout">
+      <aside class="picco-sidebar" data-sidebar>
+        <div class="picco-sidebar__header">
+          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <div class="picco-sidebar__brand">
+            <span class="picco-sidebar__brand-logo">PICCO</span>
+            <span class="picco-sidebar__brand-subtitle">Admin paneli</span>
+          </div>
         </div>
-        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <nav class="picco-nav" data-menu>
-          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="admin-dashboard">
-            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+        <nav class="picco-sidebar__nav">
+          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="admin-dashboard">
+            <span class="material-icons">space_dashboard</span>
             <span>Dashboard</span>
           </a>
-          <a href="./products.html" class="picco-nav__link" data-nav-link="admin-products">
-            <i data-lucide="package" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./products.html" class="picco-sidebar__link" data-nav-link="admin-products">
+            <span class="material-icons">category</span>
             <span>Mahsulotlar</span>
           </a>
-          <a href="./stores.html" class="picco-nav__link" data-nav-link="admin-stores">
-            <i data-lucide="building-2" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="admin-stores">
+            <span class="material-icons">store</span>
             <span>Do'konlar</span>
           </a>
-          <a href="./agents.html" class="picco-nav__link" data-nav-link="admin-agents">
-            <i data-lucide="users-round" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./agents.html" class="picco-sidebar__link" data-nav-link="admin-agents">
+            <span class="material-icons">groups</span>
             <span>Agentlar</span>
           </a>
-          <a href="./stats.html" class="picco-nav__link" data-nav-link="admin-stats">
-            <i data-lucide="chart-line" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="admin-stats">
+            <span class="material-icons">bar_chart</span>
             <span>Statistika</span>
           </a>
-          <a href="./settings.html" class="picco-nav__link" data-nav-link="admin-settings">
-            <i data-lucide="settings-2" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./settings.html" class="picco-sidebar__link" data-nav-link="admin-settings">
+            <span class="material-icons">admin_panel_settings</span>
             <span>Sozlamalar</span>
           </a>
-          <button type="button" class="picco-nav__link picco-nav__link--danger" data-action="logout">
-            <i data-lucide="log-out" class="picco-nav__icon" aria-hidden="true"></i>
+          <button type="button" class="picco-sidebar__link" data-action="logout">
+            <span class="material-icons">logout</span>
             <span>Chiqish</span>
           </button>
         </nav>
+      </aside>
+
+      <div class="picco-main-area">
+        <header class="picco-topbar">
+          <div class="picco-topbar__left">
+            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
+              <span class="material-icons">menu</span>
+            </button>
+            <h1 class="picco-topbar__title">Statistika paneli</h1>
+          </div>
+        </header>
+
+        <main class="picco-main">
+          <div class="picco-main__inner">
+            <section class="picco-section-intro">
+              <h1 class="text-3xl font-semibold text-white">Statistika va monitoring</h1>
+              <p>Sotuvlar, agentlar va mahsulotlar bo'yicha chuqur tahlilni kuzatib boring.</p>
+            </section>
+
+            <section class="grid gap-6 xl:grid-cols-2">
+              <div class="picco-surface">
+                <div class="picco-surface__header">
+                  <h2 class="picco-surface__title">Agentlar bo'yicha tushum</h2>
+                </div>
+                <canvas id="stats-agent-chart" height="220"></canvas>
+              </div>
+              <div class="picco-surface">
+                <div class="picco-surface__header">
+                  <h2 class="picco-surface__title">Mahsulotlar ulushi</h2>
+                </div>
+                <canvas id="stats-product-chart" height="220"></canvas>
+              </div>
+            </section>
+
+            <section class="picco-surface space-y-4">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Oylik sotuv dinamikasi</h2>
+                <div class="picco-btn-group">
+                  <a href="#" data-export="excel" class="picco-btn picco-btn--ghost">
+                    <span class="material-icons">file_download</span>
+                    Excel
+                  </a>
+                  <a href="#" data-export="pdf" class="picco-btn picco-btn--ghost">
+                    <span class="material-icons">picture_as_pdf</span>
+                    PDF
+                  </a>
+                </div>
+              </div>
+              <canvas id="stats-monthly-chart" height="260"></canvas>
+            </section>
+          </div>
+        </main>
+
+        <footer class="picco-footer">&copy; PICCO 2025</footer>
       </div>
-    </header>
-
-    <main class="picco-main">
-      <div class="picco-main__inner space-y-8">
-        <section class="picco-section-intro">
-          <h1 class="text-2xl font-semibold text-slate-100">Statistika</h1>
-          <p class="text-sm text-slate-300">Sotuvlar, agentlar va mahsulotlar bo'yicha tahlil.</p>
-        </section>
-
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="picco-surface">
-            <div class="picco-surface__header">
-              <h2 class="picco-surface__title">Agentlar bo'yicha tushum</h2>
-            </div>
-            <canvas id="stats-agent-chart" height="220"></canvas>
-          </div>
-          <div class="picco-surface">
-            <div class="picco-surface__header">
-              <h2 class="picco-surface__title">Mahsulotlar ulushi</h2>
-            </div>
-            <canvas id="stats-product-chart" height="220"></canvas>
-          </div>
-        </section>
-
-        <section class="picco-surface">
-          <div class="picco-surface__header">
-            <h2 class="picco-surface__title">Oylik sotuv dinamikasi</h2>
-            <div class="picco-btn-group">
-              <a href="#" data-export="excel" class="picco-btn picco-btn--ghost">
-                <i data-lucide="download" class="w-4 h-4" aria-hidden="true"></i>
-                Excel
-              </a>
-              <a href="#" data-export="pdf" class="picco-btn picco-btn--ghost">
-                <i data-lucide="file-text" class="w-4 h-4" aria-hidden="true"></i>
-                PDF
-              </a>
-            </div>
-          </div>
-          <canvas id="stats-monthly-chart" height="260"></canvas>
-        </section>
-      </div>
-    </main>
-
-    <footer class="picco-footer">&copy; PICCO 2025</footer>
+    </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/admin.js"></script>
   </body>
 </html>

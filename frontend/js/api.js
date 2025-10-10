@@ -115,8 +115,9 @@ export function createAgentOrder(payload) {
   return request('/agent/orders', { method: 'POST', body: payload });
 }
 
-export function fetchAgentStats(agentId) {
-  return request(`/agent/stats/${agentId}`);
+export function fetchAgentStats(agentId, params) {
+  const query = params ? `?${new URLSearchParams(params)}` : '';
+  return request(`/agent/stats/${agentId}${query}`);
 }
 
 // Admin APIs

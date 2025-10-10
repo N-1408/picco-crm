@@ -21,88 +21,109 @@
         }
       };
     </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="agent-stores" class="picco-body">
-    <header class="picco-header">
-      <div class="picco-header__inner">
-        <div class="picco-brand">
-          <span class="picco-brand__logo">PICCO</span>
-          <span class="picco-brand__subtitle">Agent paneli</span>
+  <body class="picco-body" data-page="agent-stores">
+    <div class="picco-layout">
+      <aside class="picco-sidebar" data-sidebar>
+        <div class="picco-sidebar__header">
+          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <div class="picco-sidebar__brand">
+            <span class="picco-sidebar__brand-logo">PICCO</span>
+            <span class="picco-sidebar__brand-subtitle">Agent paneli</span>
+          </div>
         </div>
-        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <nav class="picco-nav" data-menu>
-          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="agent-dashboard">
-            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+        <nav class="picco-sidebar__nav">
+          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="agent-dashboard">
+            <span class="material-icons">space_dashboard</span>
             <span>Dashboard</span>
           </a>
-          <a href="./orders.html" class="picco-nav__link" data-nav-link="agent-orders">
-            <i data-lucide="shopping-bag" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./orders.html" class="picco-sidebar__link" data-nav-link="agent-orders">
+            <span class="material-icons">inventory_2</span>
             <span>Buyurtmalar</span>
           </a>
-          <a href="./stores.html" class="picco-nav__link" data-nav-link="agent-stores">
-            <i data-lucide="store" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="agent-stores">
+            <span class="material-icons">storefront</span>
             <span>Do'konlar</span>
           </a>
-          <a href="./stats.html" class="picco-nav__link" data-nav-link="agent-stats">
-            <i data-lucide="activity" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="agent-stats">
+            <span class="material-icons">insights</span>
             <span>Statistika</span>
           </a>
         </nav>
-      </div>
-    </header>
+      </aside>
 
-    <main class="picco-main">
-      <div class="picco-main__inner space-y-8">
-        <section class="picco-section-intro">
-          <h1 class="text-2xl font-semibold text-slate-100">Do'konlar</h1>
-          <p class="text-sm text-slate-300">Agentga biriktirilgan do'konlarni boshqaring.</p>
-        </section>
-
-        <section class="picco-surface space-y-6">
-          <div class="picco-surface__header">
-            <h2 class="picco-surface__title">Do'kon qo'shish</h2>
+      <div class="picco-main-area">
+        <header class="picco-topbar">
+          <div class="picco-topbar__left">
+            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
+              <span class="material-icons">menu</span>
+            </button>
+            <h1 class="picco-topbar__title">Do'konlar boshqaruvi</h1>
           </div>
-          <form id="agent-store-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="picco-form-label" for="store-name">Do'kon nomi</label>
-              <input name="name" id="store-name" type="text" required class="picco-input" />
-            </div>
-            <div>
-              <label class="picco-form-label" for="store-phone">Telefon</label>
-              <input name="phone" id="store-phone" type="tel" class="picco-input" />
-            </div>
-            <div>
-              <label class="picco-form-label" for="store-address">Manzil</label>
-              <input name="address" id="store-address" type="text" class="picco-input" />
-            </div>
-            <div class="md:col-span-3 flex justify-end">
-              <button type="submit" class="picco-btn picco-btn--primary">
-                <i data-lucide="save" class="w-4 h-4" aria-hidden="true"></i>
-                Do'konni saqlash
-              </button>
-            </div>
-          </form>
-        </section>
+        </header>
 
-        <section class="picco-surface">
-          <div class="picco-surface__header">
-            <h2 class="picco-surface__title">Do'konlar ro'yxati</h2>
+        <main class="picco-main">
+          <div class="picco-main__inner">
+            <section class="picco-section-intro">
+              <h1 class="text-3xl font-semibold text-white">Do'konlar</h1>
+              <p>Hamkor do'konlaringizni qo'shing, kontaktlarini yangilang va agentlarga biriktiring.</p>
+            </section>
+
+            <section class="picco-surface">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Yangi do'kon</h2>
+                <button class="picco-btn picco-btn--primary" type="button" data-collapse-target="agent-store-form-wrapper">
+                  <span class="material-icons">add_business</span>
+                  Do'kon qo'shish
+                </button>
+              </div>
+              <div id="agent-store-form-wrapper" class="picco-collapsible">
+                <form id="agent-store-form" class="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <label class="picco-form-label" for="store-name">Do'kon nomi</label>
+                    <input name="name" id="store-name" type="text" required class="picco-input" />
+                  </div>
+                  <div>
+                    <label class="picco-form-label" for="store-phone">Telefon</label>
+                    <input name="phone" id="store-phone" type="tel" class="picco-input" />
+                  </div>
+                  <div>
+                    <label class="picco-form-label" for="store-address">Manzil</label>
+                    <input name="address" id="store-address" type="text" class="picco-input" />
+                  </div>
+                  <div class="md:col-span-3 flex items-center justify-end gap-3">
+                    <button type="button" class="picco-btn picco-btn--ghost" id="agent-store-cancel">
+                      <span class="material-icons">close</span>
+                      Bekor qilish
+                    </button>
+                    <button type="submit" class="picco-btn picco-btn--primary">
+                      <span class="material-icons">save</span>
+                      Do'konni saqlash
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="picco-surface">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Do'konlar ro'yxati</h2>
+              </div>
+              <div id="agent-stores-list" class="picco-card-grid"></div>
+            </section>
           </div>
-          <div id="agent-stores-list" class="picco-card-grid"></div>
-        </section>
-      </div>
-    </main>
+        </main>
 
-    <footer class="picco-footer">&copy; PICCO 2025</footer>
+        <footer class="picco-footer">&copy; PICCO 2025</footer>
+      </div>
+    </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/agent.js"></script>
   </body>
 </html>

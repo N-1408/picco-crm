@@ -21,84 +21,98 @@
         }
       };
     </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="admin-agents" class="picco-body">
-    <header class="picco-header">
-      <div class="picco-header__inner">
-        <div class="picco-brand">
-          <span class="picco-brand__logo">PICCO</span>
-          <span class="picco-brand__subtitle">Admin paneli</span>
+  <body class="picco-body" data-page="admin-agents">
+    <div class="picco-layout">
+      <aside class="picco-sidebar" data-sidebar>
+        <div class="picco-sidebar__header">
+          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <div class="picco-sidebar__brand">
+            <span class="picco-sidebar__brand-logo">PICCO</span>
+            <span class="picco-sidebar__brand-subtitle">Admin paneli</span>
+          </div>
         </div>
-        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Navigatsiya">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <nav class="picco-nav" data-menu>
-          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="admin-dashboard">
-            <i data-lucide="layout-dashboard" class="picco-nav__icon" aria-hidden="true"></i>
+        <nav class="picco-sidebar__nav">
+          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="admin-dashboard">
+            <span class="material-icons">space_dashboard</span>
             <span>Dashboard</span>
           </a>
-          <a href="./products.html" class="picco-nav__link" data-nav-link="admin-products">
-            <i data-lucide="package" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./products.html" class="picco-sidebar__link" data-nav-link="admin-products">
+            <span class="material-icons">category</span>
             <span>Mahsulotlar</span>
           </a>
-          <a href="./stores.html" class="picco-nav__link" data-nav-link="admin-stores">
-            <i data-lucide="building-2" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="admin-stores">
+            <span class="material-icons">store</span>
             <span>Do'konlar</span>
           </a>
-          <a href="./agents.html" class="picco-nav__link" data-nav-link="admin-agents">
-            <i data-lucide="users-round" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./agents.html" class="picco-sidebar__link" data-nav-link="admin-agents">
+            <span class="material-icons">groups</span>
             <span>Agentlar</span>
           </a>
-          <a href="./stats.html" class="picco-nav__link" data-nav-link="admin-stats">
-            <i data-lucide="chart-line" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="admin-stats">
+            <span class="material-icons">bar_chart</span>
             <span>Statistika</span>
           </a>
-          <a href="./settings.html" class="picco-nav__link" data-nav-link="admin-settings">
-            <i data-lucide="settings-2" class="picco-nav__icon" aria-hidden="true"></i>
+          <a href="./settings.html" class="picco-sidebar__link" data-nav-link="admin-settings">
+            <span class="material-icons">admin_panel_settings</span>
             <span>Sozlamalar</span>
           </a>
-          <button type="button" class="picco-nav__link picco-nav__link--danger" data-action="logout">
-            <i data-lucide="log-out" class="picco-nav__icon" aria-hidden="true"></i>
+          <button type="button" class="picco-sidebar__link" data-action="logout">
+            <span class="material-icons">logout</span>
             <span>Chiqish</span>
           </button>
         </nav>
-      </div>
-    </header>
+      </aside>
 
-    <main class="picco-main">
-      <div class="picco-main__inner space-y-8">
-        <section class="picco-section-intro">
-          <h1 class="text-2xl font-semibold text-slate-100">Agentlar</h1>
-          <p class="text-sm text-slate-300">Agentlarning ko'rsatkichlari va aloqa ma'lumotlari.</p>
-        </section>
-
-        <section class="picco-surface">
-          <div class="overflow-x-auto">
-            <table class="picco-table">
-              <thead>
-                <tr>
-                  <th>Agent</th>
-                  <th>Telefon</th>
-                  <th>Telegram ID</th>
-                  <th>Ro'yxatdan o'tgan</th>
-                  <th class="text-right">Umumiy tushum</th>
-                </tr>
-              </thead>
-              <tbody id="agents-table-body"></tbody>
-            </table>
+      <div class="picco-main-area">
+        <header class="picco-topbar">
+          <div class="picco-topbar__left">
+            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
+              <span class="material-icons">menu</span>
+            </button>
+            <h1 class="picco-topbar__title">Agentlar ro'yxati</h1>
           </div>
-        </section>
-      </div>
-    </main>
+        </header>
 
-    <footer class="picco-footer">&copy; PICCO 2025</footer>
+        <main class="picco-main">
+          <div class="picco-main__inner">
+            <section class="picco-section-intro">
+              <h1 class="text-3xl font-semibold text-white">Agentlar</h1>
+              <p>Faol agentlar, ularning kontaktlari va tushum ko'rsatkichlarini kuzatib boring.</p>
+            </section>
+
+            <section class="picco-surface space-y-4">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Agentlar jadvali</h2>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="picco-table">
+                  <thead>
+                    <tr>
+                      <th>Agent</th>
+                      <th>Telefon</th>
+                      <th>Telegram ID</th>
+                      <th>Ro'yxatdan o'tgan</th>
+                      <th class="text-right">Umumiy tushum</th>
+                    </tr>
+                  </thead>
+                  <tbody id="agents-table-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </main>
+
+        <footer class="picco-footer">&copy; PICCO 2025</footer>
+      </div>
+    </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/lucide@2.0.0/dist/umd/lucide.js"></script>
     <script type="module" src="../../js/admin.js"></script>
   </body>
 </html>

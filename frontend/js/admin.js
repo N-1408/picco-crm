@@ -20,35 +20,20 @@ import {
 import { showToast, renderEmptyState } from './ui.js';
 
 const page = document.body.dataset.page;
+const DESKTOP_BREAKPOINT = 1024;
 
-function initShell() {
-  const menu = document.querySelector('[data-menu]');
-  const toggle = document.querySelector('[data-menu-toggle]');
+let productCache = [];
+let storeCache = [];
 
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      menu.classList.toggle('is-open');
-      toggle.classList.toggle('is-open');
-    });
-  }
+const formatCurrency = (value) =>
+  new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(value ?? 0);
 
-  const navLinks = document.querySelectorAll('[data-nav-link]');
-  navLinks.forEach((link) => {
-    if (link.dataset.navLink === page) {
-      link.classList.add('is-active');
-    }
-    link.addEventListener('click', () => {
-      if (window.innerWidth < 640) {
-        menu?.classList.remove('is-open');
-        toggle?.classList.remove('is-open');
-      }
-    });
-  });
-
-  if (window.lucide?.createIcons) {
-    window.lucide.createIcons();
-  }
-}
+const formatDate = (value) =>
+  new Intl.DateTimeFormat('uz-UZ', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }).format(new Date(value));
 
 function ensureAuthenticated() {
   const token = localStorage.getItem('picco_admin_token');
@@ -57,16 +42,113 @@ function ensureAuthenticated() {
   }
 }
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(value ?? 0);
+function setupShell() {
+  const sidebar = document.querySelector('[data-sidebar]');
+  if (!sidebar) {
+    return;
+  }
+
+  if (window.innerWidth >= DESKTOP_BREAKPOINT) {
+    sidebar.classList.add('is-open');
+  }
+
+  const openers = document.querySelectorAll('[data-sidebar-toggle]');
+  const closers = document.querySelectorAll('[data-sidebar-close]');
+  const navLinks = document.querySelectorAll('[data-nav-link]');
+
+  openers.forEach((button) => {
+    button.addEventListener('click', () => {
+      sidebar.classList.add('is-open');
+    });
+  });
+
+  const closeSidebar = () => {
+    if (window.innerWidth < DESKTOP_BREAKPOINT) {
+      sidebar.classList.remove('is-open');
+    }
+  };
+
+  closers.forEach((button) => {
+    button.addEventListener('click', () => {
+      closeSidebar();
+      if (window.history.length > 1) {
+        window.history.back();
+      }
+    });
+  });
+
+  navLinks.forEach((link) => {
+    if (link.dataset.navLink === page) {
+      link.classList.add('is-active');
+    }
+    link.addEventListener('click', () => {
+      closeSidebar();
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      sidebar.classList.remove('is-open');
+    }
+  });
 }
 
-function formatDate(value) {
-  return new Intl.DateTimeFormat('uz-UZ', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }).format(new Date(value));
+function initCollapsibles() {
+  document.querySelectorAll('[data-collapse-target]').forEach((trigger) => {
+    const targetId = trigger.getAttribute('data-collapse-target');
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    trigger.addEventListener('click', () => {
+      target.classList.toggle('is-open');
+    });
+  });
+}
+
+function closeModal(modal) {
+  if (!modal) return;
+  modal.classList.add('hidden');
+  if (!document.querySelector('[data-modal]:not(.hidden)')) {
+    document.body.classList.remove('picco-modal-open');
+  }
+}
+
+function openModalById(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.classList.add('picco-modal-open');
+  }
+  return modal;
+}
+
+function setupModals() {
+  document.querySelectorAll('[data-modal]').forEach((modal) => {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal(modal);
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-modal-close]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const modal = button.closest('[data-modal]');
+      if (modal) {
+        closeModal(modal);
+      }
+    });
+  });
+}
+
+function bindLogout() {
+  document.querySelectorAll('[data-action="logout"]').forEach((button) => {
+    button.addEventListener('click', () => {
+      clearAdminToken();
+      window.location.href = '/pages/admin/login.html';
+    });
+  });
 }
 
 async function initLoginPage() {
@@ -93,247 +175,331 @@ async function initLoginPage() {
 }
 
 async function initAdminDashboard() {
-  ensureAuthenticated();
-
-  const overviewEl = document.getElementById('admin-dashboard-overview');
-  const topAgentsEl = document.getElementById('admin-top-agents');
-  topAgentsEl?.classList.add('picco-list');
+  const overviewContainer = document.getElementById('admin-dashboard-overview');
+  const topAgentsContainer = document.getElementById('admin-top-agents');
+  if (!overviewContainer || !topAgentsContainer) return;
 
   const { agentSales, productShare, monthlySales } = await fetchAdminStats();
 
-  if (overviewEl) {
-    const totalRevenue = agentSales.reduce((sum, agent) => sum + (agent.totalRevenue ?? 0), 0);
-    const totalQuantity = productShare.reduce((sum, item) => sum + (item.totalQuantity ?? 0), 0);
-    overviewEl.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500">Umumiy tushum</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-2">${formatCurrency(totalRevenue)}</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500">Jami buyurtmalar</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-2">${totalQuantity}</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-          <p class="text-sm text-gray-500">Faol agentlar</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-2">${agentSales.length}</p>
-        </div>
-      </div>
-    `;
-  }
+  const totalRevenue = agentSales.reduce((sum, agent) => sum + (agent.totalRevenue ?? 0), 0);
+  const totalQuantity = productShare.reduce((sum, item) => sum + (item.totalQuantity ?? 0), 0);
 
-  if (topAgentsEl) {
-    if (!agentSales.length) {
-      renderEmptyState(topAgentsEl, 'Hali statistik ma\'lumotlar mavjud emas.');
-      return;
-    }
-    topAgentsEl.innerHTML = agentSales
-      .slice(0, 5)
-      .map((agent) => `
-        <div class="flex items-center justify-between border-b border-gray-200 py-3">
+  overviewContainer.innerHTML = `
+    <article class="picco-metric">
+      <div class="picco-metric__icon"><span class="material-icons">payments</span></div>
+      <div>
+        <p class="picco-metric__label">Umumiy tushum</p>
+        <p class="picco-metric__value">${formatCurrency(totalRevenue)}</p>
+      </div>
+    </article>
+    <article class="picco-metric">
+      <div class="picco-metric__icon"><span class="material-icons">inventory_2</span></div>
+      <div>
+        <p class="picco-metric__label">Jami buyurtmalar</p>
+        <p class="picco-metric__value">${totalQuantity}</p>
+      </div>
+    </article>
+    <article class="picco-metric">
+      <div class="picco-metric__icon"><span class="material-icons">groups</span></div>
+      <div>
+        <p class="picco-metric__label">Faol agentlar</p>
+        <p class="picco-metric__value">${agentSales.length}</p>
+      </div>
+    </article>
+  `;
+
+  if (!agentSales.length) {
+    renderEmptyState(topAgentsContainer, 'Hali statistik ma\'lumotlar mavjud emas.');
+  } else {
+    topAgentsContainer.innerHTML = agentSales
+      .map(
+        (agent) => `
+        <li class="picco-list__item">
           <div>
-            <p class="font-medium text-gray-900">${agent.agentName ?? 'Agent'}</p>
-            <p class="text-sm text-gray-500">${agent.totalQuantity} ta buyurtma</p>
+            <p class="font-semibold">${agent.agentName}</p>
+            <p class="text-sm text-slate-300">${agent.storeCount ?? 0} ta do'kon</p>
           </div>
-          <span class="text-sm font-semibold text-emerald-600">${formatCurrency(agent.totalRevenue)}</span>
-        </div>
-      `)
+          <div class="picco-chip">
+            <span class="material-icons">payments</span>
+            ${formatCurrency(agent.totalRevenue ?? 0)}
+          </div>
+        </li>
+      `
+      )
       .join('');
   }
-}
 
-function bindLogout() {
-  const logoutButtons = document.querySelectorAll('[data-action="logout"]');
-  logoutButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      clearAdminToken();
-      window.location.href = '/pages/admin/login.html';
+  const chartCanvas = document.getElementById('admin-dashboard-chart');
+  if (chartCanvas && window.Chart) {
+    const ctx = chartCanvas.getContext('2d');
+    const labels = monthlySales.map((item) => item.month);
+    const data = monthlySales.map((item) => item.totalRevenue ?? 0);
+
+    new window.Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Tushum',
+            data,
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.25)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        plugins: { legend: { display: false } }
+      }
     });
-  });
+  }
 }
 
 async function initProductsPage() {
-  ensureAuthenticated();
-  bindLogout();
-
-  const form = document.getElementById('product-form');
+  const formWrapper = document.getElementById('product-form-wrapper');
+  const productForm = document.getElementById('product-form');
+  const cancelButton = document.getElementById('product-form-cancel');
   const tableBody = document.getElementById('products-table-body');
-  const formTitle = document.getElementById('product-form-title');
+  const editForm = document.getElementById('product-edit-form');
+  const editModal = document.getElementById('product-edit-modal');
+  const deleteModal = document.getElementById('product-delete-modal');
+  const deleteConfirmButton = document.getElementById('product-delete-confirm');
+
+  if (!productForm || !tableBody) return;
+
   let editingProductId = null;
+  let deletingProductId = null;
+
+  const toggleForm = (open) => {
+    if (!formWrapper) return;
+    if (open) {
+      formWrapper.classList.add('is-open');
+    } else {
+      formWrapper.classList.remove('is-open');
+    }
+  };
+
+  cancelButton?.addEventListener('click', () => {
+    productForm.reset();
+    toggleForm(false);
+  });
 
   const renderProducts = (products) => {
     if (!products.length) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-3 py-4 text-center text-gray-500">Mahsulotlar mavjud emas.</td>
+          <td colspan="5" class="text-center py-4 text-slate-300">Mahsulotlar hali qo'shilmagan.</td>
         </tr>
       `;
       return;
     }
+
     tableBody.innerHTML = products
-      .map((product) => `
-        <tr class="border-b border-gray-200">
-          <td class="px-3 py-2 font-medium text-gray-900">${product.name}</td>
-          <td class="px-3 py-2 text-sm text-gray-500">${product.description ?? '-'}</td>
-          <td class="px-3 py-2 text-right">${formatCurrency(product.price)}</td>
-          <td class="px-3 py-2 text-center">${product.stock ?? 0}</td>
-          <td class="px-3 py-2 text-right space-x-2">
-            <button class="text-emerald-600 text-sm" data-action="edit" data-id="${product.id}">Tahrirlash</button>
-            <button class="text-red-600 text-sm" data-action="delete" data-id="${product.id}">O\'chirish</button>
+      .map(
+        (product) => `
+        <tr>
+          <td>${product.name}</td>
+          <td>${product.description ?? '-'}</td>
+          <td class="text-right">${formatCurrency(product.price)}</td>
+          <td class="text-center">${product.stock ?? 0}</td>
+          <td>
+            <div class="flex justify-end gap-2">
+              <button type="button" class="picco-chip" data-action="edit" data-id="${product.id}">
+                <span class="material-icons">edit</span>
+                Tahrirlash
+              </button>
+              <button type="button" class="picco-chip picco-chip--danger" data-action="delete" data-id="${product.id}">
+                <span class="material-icons">delete</span>
+                O'chirish
+              </button>
+            </div>
           </td>
         </tr>
-      `)
+      `
+      )
       .join('');
   };
 
-  async function refresh() {
+  const refresh = async () => {
     const { products } = await fetchAdminProducts();
-    renderProducts(products);
-  }
+    productCache = products ?? [];
+    renderProducts(productCache);
+  };
 
-  tableBody.addEventListener('click', async (event) => {
-    const target = event.target;
+  tableBody.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-action]');
     if (!(target instanceof HTMLElement)) return;
-    const id = target.dataset.id;
 
-    if (target.dataset.action === 'edit') {
+    const { id, action } = target.dataset;
+    if (!id || !action) return;
+
+    if (action === 'edit') {
       editingProductId = id;
-      const row = target.closest('tr');
-      const [nameCell, descCell, priceCell, stockCell] = row.querySelectorAll('td');
-      form.name.value = nameCell.textContent.trim();
-      form.description.value = descCell.textContent.trim() === '-' ? '' : descCell.textContent.trim();
-      form.price.value = priceCell.textContent.replace(/\D/g, '');
-      form.stock.value = stockCell.textContent.trim();
-      formTitle.textContent = 'Mahsulotni tahrirlash';
+      const product = productCache.find((item) => item.id === id);
+      if (!product || !editForm) return;
+      editForm.elements.namedItem('id').value = product.id;
+      editForm.elements.namedItem('name').value = product.name ?? '';
+      editForm.elements.namedItem('description').value = product.description ?? '';
+      editForm.elements.namedItem('price').value = product.price ?? 0;
+      editForm.elements.namedItem('stock').value = product.stock ?? 0;
+      openModalById('product-edit-modal');
     }
 
-    if (target.dataset.action === 'delete') {
-      if (confirm('Mahsulotni o\'chirishni tasdiqlaysizmi?')) {
-        try {
-          await deleteAdminProduct(id);
-          showToast('Mahsulot o\'chirildi', 'success');
-          refresh();
-        } catch (error) {
-          showToast(error.message, 'error');
-        }
-      }
+    if (action === 'delete') {
+      deletingProductId = id;
+      openModalById('product-delete-modal');
     }
   });
 
-  form.addEventListener('submit', async (event) => {
+  productForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const formData = new FormData(form);
+    const formData = new FormData(productForm);
     const payload = {
       name: formData.get('name'),
       description: formData.get('description'),
-      price: Number(formData.get('price') || 0),
-      stock: Number(formData.get('stock') || 0)
+      price: Number(formData.get('price') ?? 0),
+      stock: Number(formData.get('stock') ?? 0)
     };
 
     try {
-      if (editingProductId) {
-        await updateAdminProduct(editingProductId, payload);
-        showToast('Mahsulot yangilandi', 'success');
-      } else {
-        await createAdminProduct(payload);
-        showToast('Mahsulot qo\'shildi', 'success');
-      }
-      editingProductId = null;
-      formTitle.textContent = 'Yangi mahsulot qo\'shish';
-      form.reset();
+      await createAdminProduct(payload);
+      showToast('Mahsulot qo\'shildi', 'success');
+      productForm.reset();
+      toggleForm(false);
       refresh();
     } catch (error) {
       showToast(error.message, 'error');
     }
   });
 
-  document.getElementById('product-form-cancel')?.addEventListener('click', () => {
-    editingProductId = null;
-    form.reset();
-    formTitle.textContent = 'Yangi mahsulot qo\'shish';
+  editForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!editingProductId) return;
+    const formData = new FormData(editForm);
+    const payload = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      price: Number(formData.get('price') ?? 0),
+      stock: Number(formData.get('stock') ?? 0)
+    };
+
+    try {
+      await updateAdminProduct(editingProductId, payload);
+      showToast('Mahsulot yangilandi', 'success');
+      closeModal(editModal);
+      editingProductId = null;
+      refresh();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  });
+
+  deleteConfirmButton?.addEventListener('click', async () => {
+    if (!deletingProductId) return;
+    try {
+      await deleteAdminProduct(deletingProductId);
+      showToast('Mahsulot o\'chirildi', 'success');
+      closeModal(deleteModal);
+      deletingProductId = null;
+      refresh();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
   });
 
   refresh();
 }
 
 async function initStoresPage() {
-  ensureAuthenticated();
-  bindLogout();
-
   const storeList = document.getElementById('admin-stores-list');
-  const form = document.getElementById('store-form');
-  const submitButton = document.getElementById('store-submit');
+  const storeFormWrapper = document.getElementById('store-form-wrapper');
+  const storeForm = document.getElementById('store-form');
+  const storeCancel = document.getElementById('store-form-cancel');
+  const editForm = document.getElementById('store-edit-form');
+  const editModal = document.getElementById('store-edit-modal');
+  const deleteModal = document.getElementById('store-delete-modal');
+  const deleteConfirmButton = document.getElementById('store-delete-confirm');
+
+  if (!storeList || !storeForm) return;
 
   let editingStoreId = null;
+  let deletingStoreId = null;
+
+  const toggleStoreForm = (open) => {
+    if (!storeFormWrapper) return;
+    storeFormWrapper.classList.toggle('is-open', open);
+  };
+
+  storeCancel?.addEventListener('click', () => {
+    storeForm.reset();
+    toggleStoreForm(false);
+  });
 
   const renderStores = (stores) => {
     if (!stores.length) {
       renderEmptyState(storeList, 'Do\'konlar ro\'yxati bo\'sh.');
       return;
     }
+
     storeList.innerHTML = stores
-      .map((store) => `
-        <article class="picco-tile" data-store-id="${store.id}">
-          <div class="picco-tile__icon">
-            <i data-lucide="store" aria-hidden="true"></i>
-          </div>
-          <div class="picco-tile__body">
-            <h3>${store.name}</h3>
-            <p class="picco-tile__meta">${store.address ?? 'Manzil ko\'rsatilmagan'}</p>
-            <p class="picco-tile__meta">${store.phone ?? 'Telefon: -'}</p>
-            <p class="picco-tile__meta">Biriktirilgan agent: ${store.users?.name ?? '—'}</p>
+      .map(
+        (store) => `
+        <li class="picco-list__item">
+          <div>
+            <p class="font-semibold">${store.name}</p>
+            <p class="text-sm text-slate-300">${store.phone ?? 'Telefon mavjud emas'}</p>
+            <p class="text-sm text-slate-400">${store.address ?? 'Manzil kiritilmagan'}</p>
           </div>
           <div class="picco-tile__actions">
-            <button class="picco-chip" data-action="edit" data-id="${store.id}">
-              <i data-lucide="pencil" class="w-4 h-4" aria-hidden="true"></i>Tahrirlash
+            <button type="button" class="picco-chip" data-action="edit" data-id="${store.id}">
+              <span class="material-icons">edit</span>
+              Tahrirlash
             </button>
-            <button class="picco-chip picco-chip--danger" data-action="delete" data-id="${store.id}">
-              <i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i>O'chirish
+            <button type="button" class="picco-chip picco-chip--danger" data-action="delete" data-id="${store.id}">
+              <span class="material-icons">delete</span>
+              O'chirish
             </button>
           </div>
-        </article>
-      `)
+        </li>
+      `
+      )
       .join('');
-    window.lucide?.createIcons();
   };
 
-  async function refresh() {
+  const refresh = async () => {
     const { stores } = await fetchAdminStores();
-    renderStores(stores);
-  }
+    storeCache = stores ?? [];
+    renderStores(storeCache);
+  };
 
-  storeList.addEventListener('click', async (event) => {
-    const target = event.target;
+  storeList.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-action]');
     if (!(target instanceof HTMLElement)) return;
-    const id = target.dataset.id;
-    if (!id) return;
+    const { id, action } = target.dataset;
+    if (!id || !action) return;
 
-    if (target.dataset.action === 'edit') {
+    if (action === 'edit') {
       editingStoreId = id;
-      const card = target.closest('[data-store-id]');
-      form.name.value = card.querySelector('h3').textContent.trim();
-      const info = card.querySelectorAll('p');
-      form.address.value = info[0]?.textContent.trim();
-      form.phone.value = info[1]?.textContent.replace('Telefon: ', '').trim();
-      submitButton.textContent = 'Saqlash';
+      const store = storeCache.find((item) => item.id === id);
+      if (!store || !editForm) return;
+      editForm.elements.namedItem('id').value = store.id;
+      editForm.elements.namedItem('name').value = store.name ?? '';
+      editForm.elements.namedItem('phone').value = store.phone ?? '';
+      editForm.elements.namedItem('address').value = store.address ?? '';
+      openModalById('store-edit-modal');
     }
 
-    if (target.dataset.action === 'delete') {
-      if (confirm('Do\'konni o\'chirishni xohlaysizmi?')) {
-        try {
-          await deleteAdminStore(id);
-          showToast('Do\'kon o\'chirildi', 'success');
-          refresh();
-        } catch (error) {
-          showToast(error.message, 'error');
-        }
-      }
+    if (action === 'delete') {
+      deletingStoreId = id;
+      openModalById('store-delete-modal');
     }
   });
 
-  form.addEventListener('submit', async (event) => {
+  storeForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const formData = new FormData(form);
+    const formData = new FormData(storeForm);
     const payload = {
       name: formData.get('name'),
       phone: formData.get('phone'),
@@ -341,16 +507,44 @@ async function initStoresPage() {
     };
 
     try {
-      if (editingStoreId) {
-        await updateAdminStore(editingStoreId, payload);
-        showToast('Do\'kon yangilandi', 'success');
-      } else {
-        await createAdminStore(payload);
-        showToast('Do\'kon qo\'shildi', 'success');
-      }
+      await createAdminStore(payload);
+      showToast('Do\'kon qo\'shildi', 'success');
+      storeForm.reset();
+      toggleStoreForm(false);
+      refresh();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  });
+
+  editForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!editingStoreId) return;
+    const formData = new FormData(editForm);
+    const payload = {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      address: formData.get('address')
+    };
+
+    try {
+      await updateAdminStore(editingStoreId, payload);
+      showToast('Do\'kon yangilandi', 'success');
+      closeModal(editModal);
       editingStoreId = null;
-      submitButton.textContent = 'Qo\'shish';
-      form.reset();
+      refresh();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  });
+
+  deleteConfirmButton?.addEventListener('click', async () => {
+    if (!deletingStoreId) return;
+    try {
+      await deleteAdminStore(deletingStoreId);
+      showToast('Do\'kon o\'chirildi', 'success');
+      closeModal(deleteModal);
+      deletingStoreId = null;
       refresh();
     } catch (error) {
       showToast(error.message, 'error');
@@ -361,90 +555,105 @@ async function initStoresPage() {
 }
 
 async function initAgentsPage() {
-  ensureAuthenticated();
-  bindLogout();
-
   const tableBody = document.getElementById('agents-table-body');
+  if (!tableBody) return;
+
   const { agents } = await fetchAdminAgents();
 
   if (!agents.length) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="5" class="px-3 py-4 text-center text-gray-500">Agentlar hali qo\'shilmagan.</td>
+        <td colspan="5" class="text-center py-4 text-slate-300">Agentlar hali qo'shilmagan.</td>
       </tr>
     `;
     return;
   }
 
   tableBody.innerHTML = agents
-    .map((agent) => `
-      <tr class="border-b border-gray-200">
-        <td class="px-3 py-2 font-medium text-gray-900">${agent.name}</td>
-        <td class="px-3 py-2 text-sm text-gray-500">${agent.phone}</td>
-        <td class="px-3 py-2 text-sm text-gray-500">${agent.telegram_id}</td>
-        <td class="px-3 py-2 text-sm text-gray-500">${formatDate(agent.created_at)}</td>
-        <td class="px-3 py-2 text-right">
-          <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold">
-            ${formatCurrency(agent.stats.totalRevenue)}
+    .map(
+      (agent) => `
+      <tr>
+        <td>${agent.name}</td>
+        <td>${agent.phone}</td>
+        <td>${agent.telegram_id}</td>
+        <td>${formatDate(agent.created_at)}</td>
+        <td class="text-right">
+          <span class="picco-chip">
+            <span class="material-icons">payments</span>
+            ${formatCurrency(agent.stats?.totalRevenue ?? 0)}
           </span>
         </td>
       </tr>
-    `)
+    `
+    )
     .join('');
 }
 
 async function initStatsPage() {
-  ensureAuthenticated();
-  bindLogout();
-
   const chartLib = window.Chart;
+  if (!chartLib) return;
+
   const agentCtx = document.getElementById('stats-agent-chart');
   const productCtx = document.getElementById('stats-product-chart');
   const monthlyCtx = document.getElementById('stats-monthly-chart');
 
   const { agentSales, productShare, monthlySales } = await fetchAdminStats();
 
-  if (chartLib && agentCtx) {
+  if (agentCtx) {
+    const agentLabels = agentSales.map((item) => item.agentName);
+    const agentData = agentSales.map((item) => item.totalRevenue ?? 0);
     new chartLib(agentCtx.getContext('2d'), {
       type: 'bar',
       data: {
-        labels: agentSales.map((item) => item.agentName),
-        datasets: [{
-          label: 'Tushum',
-          data: agentSales.map((item) => item.totalRevenue),
-          backgroundColor: '#6366F1'
-        }]
+        labels: agentLabels,
+        datasets: [
+          {
+            label: 'Tushum',
+            data: agentData,
+            backgroundColor: '#38bdf8'
+          }
+        ]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-  }
-
-  if (chartLib && productCtx) {
-    new chartLib(productCtx.getContext('2d'), {
-      type: 'pie',
-      data: {
-        labels: productShare.map((item) => item.productName),
-        datasets: [{
-          data: productShare.map((item) => item.totalRevenue),
-          backgroundColor: ['#10B981', '#F59E0B', '#3B82F6', '#6366F1', '#EF4444']
-        }]
+      options: {
+        plugins: { legend: { display: false } }
       }
     });
   }
 
-  if (chartLib && monthlyCtx) {
+  if (productCtx) {
+    const productLabels = productShare.map((item) => item.productName);
+    const productData = productShare.map((item) => item.totalRevenue ?? 0);
+    new chartLib(productCtx.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: productLabels,
+        datasets: [
+          {
+            data: productData,
+            backgroundColor: ['#38bdf8', '#2563eb', '#0ea5e9', '#c084fc', '#f97316']
+          }
+        ]
+      }
+    });
+  }
+
+  if (monthlyCtx) {
+    const monthlyLabels = monthlySales.map((item) => item.month);
+    const monthlyData = monthlySales.map((item) => item.totalRevenue ?? 0);
     new chartLib(monthlyCtx.getContext('2d'), {
       type: 'line',
       data: {
-        labels: monthlySales.map((item) => item.month),
-        datasets: [{
-          label: 'Oylik tushum',
-          data: monthlySales.map((item) => item.totalRevenue),
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16, 185, 129, 0.2)',
-          tension: 0.4,
-          fill: true
-        }]
+        labels: monthlyLabels,
+        datasets: [
+          {
+            label: 'Tushum',
+            data: monthlyData,
+            borderColor: '#a855f7',
+            backgroundColor: 'rgba(168, 85, 247, 0.25)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
       },
       options: {
         plugins: { legend: { display: false } }
@@ -480,10 +689,7 @@ async function initStatsPage() {
   });
 }
 
-async function initSettingsPage() {
-  ensureAuthenticated();
-  bindLogout();
-
+function initSettingsPage() {
   const addAdminForm = document.getElementById('add-admin-form');
   const changePasswordForm = document.getElementById('change-password-form');
   const resetButton = document.getElementById('reset-database-btn');
@@ -521,28 +727,31 @@ async function initSettingsPage() {
   });
 
   resetButton?.addEventListener('click', async () => {
-    if (confirm('Barcha ma\'lumotlarni tozalashni tasdiqlaysizmi?')) {
-      try {
-        await resetPlatform();
-        showToast('Ma\'lumotlar tozalandi', 'warning');
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
+    if (!confirm('Barcha ma\'lumotlarni tozalashni tasdiqlaysizmi?')) return;
+    try {
+      await resetPlatform();
+      showToast('Ma\'lumotlar tozalandi', 'warning');
+    } catch (error) {
+      showToast(error.message, 'error');
     }
   });
 }
 
 function main() {
-  if (page !== 'admin-login') {
-    initShell();
+  if (page === 'admin-login') {
+    initLoginPage();
+    return;
   }
+
+  ensureAuthenticated();
+  setupShell();
+  initCollapsibles();
+  setupModals();
+  bindLogout();
+
   switch (page) {
-    case 'admin-login':
-      initLoginPage();
-      break;
     case 'admin-dashboard':
       initAdminDashboard();
-      bindLogout();
       break;
     case 'admin-products':
       initProductsPage();
@@ -565,7 +774,3 @@ function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
-
-
-
-

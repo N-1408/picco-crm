@@ -14,27 +14,16 @@ function ensureToastContainer() {
 export function showToast(message, type = 'success') {
   const container = ensureToastContainer();
   const toast = document.createElement('div');
-  const background = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    warning: 'bg-yellow-500',
-    info: 'bg-blue-500'
-  }[type] ?? 'bg-gray-800';
-
-  toast.className = `text-white px-4 py-3 rounded shadow-lg ${background} animate-slide-in`;
+  toast.className = `picco-toast picco-toast--${type}`;
   toast.textContent = message;
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-x-4');
+    toast.classList.add('picco-toast--exit');
     setTimeout(() => container.removeChild(toast), 300);
   }, 3000);
 }
 
 export function renderEmptyState(container, message) {
-  container.innerHTML = `
-    <div class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
-      ${message}
-    </div>
-  `;
+  container.innerHTML = `<div class="picco-empty">${message}</div>`;
 }

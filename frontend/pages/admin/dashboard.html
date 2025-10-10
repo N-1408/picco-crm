@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard | PICCO</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1C9QX4TctnWMn13TZye+giMm8e2Lw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
     <script>
       tailwind.config = {
         theme: {
@@ -28,71 +21,140 @@
         }
       };
     </script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
-  <body data-page="admin-dashboard" class="picco-body">
-    <header class="picco-header">
-      <div class="picco-header__inner">
-        <div class="picco-brand">
-          <span class="picco-brand__logo">PICCO</span>
-          <span class="picco-brand__subtitle">Admin paneli</span>
+  <body class="picco-body" data-page="admin-dashboard">
+    <div class="picco-layout">
+      <aside class="picco-sidebar" data-sidebar>
+        <div class="picco-sidebar__header">
+          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <div class="picco-sidebar__brand">
+            <span class="picco-sidebar__brand-logo">PICCO</span>
+            <span class="picco-sidebar__brand-subtitle">Admin paneli</span>
+          </div>
         </div>
-        <button class="picco-menu-btn sm:hidden" data-menu-toggle aria-label="Menyuni ochish">
-          <i class="fa-solid fa-bars"></i>
-        </button>
-        <nav class="picco-nav" data-menu>
-          <a href="./dashboard.html" class="picco-nav__link" data-nav-link="admin-dashboard">
-            <i class="fa-solid fa-gauge-high"></i>
+        <nav class="picco-sidebar__nav">
+          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="admin-dashboard">
+            <span class="material-icons">space_dashboard</span>
             <span>Dashboard</span>
           </a>
-          <a href="./products.html" class="picco-nav__link" data-nav-link="admin-products">
-            <i class="fa-solid fa-box"></i>
+          <a href="./products.html" class="picco-sidebar__link" data-nav-link="admin-products">
+            <span class="material-icons">category</span>
             <span>Mahsulotlar</span>
           </a>
-          <a href="./stores.html" class="picco-nav__link" data-nav-link="admin-stores">
-            <i class="fa-solid fa-store"></i>
+          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="admin-stores">
+            <span class="material-icons">store</span>
             <span>Do'konlar</span>
           </a>
-          <a href="./agents.html" class="picco-nav__link" data-nav-link="admin-agents">
-            <i class="fa-solid fa-user-group"></i>
+          <a href="./agents.html" class="picco-sidebar__link" data-nav-link="admin-agents">
+            <span class="material-icons">groups</span>
             <span>Agentlar</span>
           </a>
-          <a href="./stats.html" class="picco-nav__link" data-nav-link="admin-stats">
-            <i class="fa-solid fa-chart-column"></i>
+          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="admin-stats">
+            <span class="material-icons">bar_chart</span>
             <span>Statistika</span>
           </a>
-          <a href="./settings.html" class="picco-nav__link" data-nav-link="admin-settings">
-            <i class="fa-solid fa-sliders"></i>
+          <a href="./settings.html" class="picco-sidebar__link" data-nav-link="admin-settings">
+            <span class="material-icons">admin_panel_settings</span>
             <span>Sozlamalar</span>
           </a>
-          <button type="button" class="picco-nav__link picco-nav__link--danger" data-action="logout">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <button type="button" class="picco-sidebar__link" data-action="logout">
+            <span class="material-icons">logout</span>
             <span>Chiqish</span>
           </button>
         </nav>
-      </div>
-    </header>
+      </aside>
 
-    <main class="picco-main">
-      <div class="picco-main__inner space-y-8">
-        <section class="picco-section-intro">
-          <h1 class="text-2xl font-semibold text-slate-100">Dashboard</h1>
-          <p class="text-sm text-slate-300">Boshqaruv, statistika va nazorat.</p>
-        </section>
-
-        <section id="admin-dashboard-overview"></section>
-
-        <section class="picco-surface">
-          <div class="picco-surface__header">
-            <h2 class="picco-surface__title">Top agentlar</h2>
+      <div class="picco-main-area">
+        <header class="picco-topbar">
+          <div class="picco-topbar__left">
+            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
+              <span class="material-icons">menu</span>
+            </button>
+            <h1 class="picco-topbar__title">Admin dashboard</h1>
           </div>
-          <div id="admin-top-agents" class="picco-list"></div>
-        </section>
-      </div>
-    </main>
+        </header>
 
-    <footer class="picco-footer">&copy; PICCO 2025</footer>
+        <main class="picco-main">
+          <div class="picco-main__inner">
+            <section class="picco-section-intro">
+              <h1 class="text-3xl font-semibold text-white">PICCO boshqaruv paneli</h1>
+              <p>
+                Agentlar, do'konlar va buyurtmalar bo'yicha real vaqtli statistikani kuzating, ma'lumotlarni boshqaring.
+              </p>
+            </section>
+
+            <section class="picco-surface space-y-4">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Umumiy ko'rsatkichlar</h2>
+                <div class="picco-btn-group">
+                  <button class="picco-btn picco-btn--ghost" data-range="today">
+                    <span class="material-icons">calendar_today</span>
+                    Bugun
+                  </button>
+                  <button class="picco-btn picco-btn--ghost" data-range="week">
+                    <span class="material-icons">event_repeat</span>
+                    Oxirgi hafta
+                  </button>
+                  <button class="picco-btn picco-btn--ghost" data-range="month">
+                    <span class="material-icons">calendar_month</span>
+                    Oxirgi oy
+                  </button>
+                  <button class="picco-btn picco-btn--ghost" data-range="year">
+                    <span class="material-icons">schedule</span>
+                    Yil
+                  </button>
+                </div>
+              </div>
+              <div id="admin-dashboard-overview" class="picco-metric-grid"></div>
+            </section>
+
+            <section class="picco-surface">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Top agentlar</h2>
+              </div>
+              <div id="admin-top-agents" class="picco-list"></div>
+            </section>
+
+            <section class="picco-surface">
+              <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Sotuv statistikasi</h2>
+              </div>
+              <canvas id="admin-dashboard-chart" height="240"></canvas>
+            </section>
+
+            <section class="picco-icon-grid">
+              <a href="./products.html" class="picco-icon-card">
+                <span class="picco-icon-card__icon material-icons">category</span>
+                <span class="picco-icon-card__label">Mahsulotlar</span>
+              </a>
+              <a href="./stores.html" class="picco-icon-card">
+                <span class="picco-icon-card__icon material-icons">store</span>
+                <span class="picco-icon-card__label">Do'konlar</span>
+              </a>
+              <a href="./agents.html" class="picco-icon-card">
+                <span class="picco-icon-card__icon material-icons">groups</span>
+                <span class="picco-icon-card__label">Agentlar</span>
+              </a>
+              <a href="./stats.html" class="picco-icon-card">
+                <span class="picco-icon-card__icon material-icons">bar_chart</span>
+                <span class="picco-icon-card__label">Statistika</span>
+              </a>
+              <a href="./settings.html" class="picco-icon-card">
+                <span class="picco-icon-card__icon material-icons">admin_panel_settings</span>
+                <span class="picco-icon-card__label">Sozlamalar</span>
+              </a>
+            </section>
+          </div>
+        </main>
+
+        <footer class="picco-footer">&copy; PICCO 2025</footer>
+      </div>
+    </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
