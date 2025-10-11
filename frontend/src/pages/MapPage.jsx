@@ -1,61 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import          ],
-          layers: [
-            {
-              id: 'osm',
-              type: 'raster',
-              source: 'osm'
-            }
-          ]
-        },
-        center: center,
-        zoom: 13,
-        maxZoom: 18,
-        minZoom: 5
-      });
-
-      mapRef.current.on('load', () => {
-        if (!isMounted) return;
-        
-        // Add map controls
-        mapRef.current.addControl(new maplibreRef.current.NavigationControl(), 'top-right');
-        mapRef.current.addControl(new maplibreRef.current.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true
-        }), 'top-right');
-
-        // Add click handler for location selection
-        mapRef.current.on('click', (e) => {
-          const { lng, lat } = e.lngLat;
-          updateMarker([lng, lat]);
-        });
-
-        setLoading(false);
-      });
-
-      // Add marker if store location exists
-      if (storeId && currentLngLat) {
-        updateMarker(currentLngLat);
-      }
-    };ocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import clsx from 'clsx';
 
-const DEFAULT_CENTER = [69.22, 41.32];
+const DEFAULT_CENTER = [69.22, 41.32]; // Tashkent coordinates
 
 export default function MapPage() {
-  const navigate = useNavigate();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const maplibreRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [currentLngLat, setCurrentLngLat] = useState(null);
-  const { showToast } = useApp();
+  const { showToast, addToast } = useApp();
   const location = useLocation();
-  const storeId = location.state?.storeId;
+  const targetStore = location.state?.store;
 
   useEffect(() => {
     let isMounted = true;
