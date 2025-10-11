@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext.jsx';
 import useTelegram from './hooks/useTelegram.js';
 import LandingPage from './pages/LandingPage.jsx';
@@ -208,9 +208,9 @@ function MainApp() {
 export default function App() {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <MainApp />
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 }
