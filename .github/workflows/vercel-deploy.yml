@@ -25,12 +25,9 @@ jobs:
           npm run build
 
       - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # Use vercel CLI to deploy the already-built frontend folder
+          # Use Vercel CLI if configured via repository secrets (set VERCEL_TOKEN, etc.)
           npm i -g vercel@28 || true
           cd frontend
+          # If VERCEL_TOKEN is not set this will fail; configure secrets in repo settings
           vercel --prod --confirm --token "$VERCEL_TOKEN" --org "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
