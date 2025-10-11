@@ -1,45 +1,38 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>PICCO Mini App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="PICCO CRM - Professional Inventory Control & Customer Operations" />
+    
+    <!-- Apple specific meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PICCO CRM" />
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <!-- Preload fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <title>PICCO CRM</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Initialize Telegram WebApp -->
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#2563eb',
-              secondary: '#1f2937',
-              accent: '#0ea5e9'
-            },
-            fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif']
-            }
-          }
+      window.onload = () => {
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
         }
       };
     </script>
-    <link rel="stylesheet" href="/css/style.css" />
-    <script src="/config.js"></script>
-  </head>
-  <body class="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-    <div class="max-w-md mx-auto text-center space-y-6">
-      <div class="picco-gradient rounded-3xl p-8 picco-card">
-        <h1 class="text-3xl font-semibold mb-4">PICCO Mini App</h1>
-        <p class="text-slate-100 leading-relaxed">
-          WebApp'dan foydalanish uchun avval Telegram bot orqali ro'yxatdan o'ting. Bot sizdan ism va telefon raqamingizni so'raydi va CRM tizimiga kirish uchun agent sifatida tasdiqlaydi.
-        </p>
-        <a
-          href="https://t.me/picco_crm_bot"
-          class="inline-flex items-center justify-center px-5 py-3 mt-6 bg-white text-slate-900 rounded-full font-semibold hover:bg-slate-100 transition"
-        >
-          Telegram botni ochish
-        </a>
-      </div>
-      <p class="text-sm text-slate-400">&copy; PICCO 2025</p>
-    </div>
   </body>
 </html>
-
