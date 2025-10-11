@@ -29,18 +29,20 @@ export default function ToastContainer() {
 
   return (
     <div className="fixed top-safe inset-x-0 z-50 pointer-events-none p-4 flex flex-col items-center gap-2">
-      {toasts?.map((toast: Toast) => (
+      {toasts?.map((toast: Toast) => {
+        const variant = (toast as any).variant ?? 'info';
+        return (
         <div
           key={toast.id}
           className={clsx(
             'w-full max-w-md pointer-events-auto',
             'flex items-start gap-3 p-4 rounded-xl border animate-slide-in',
             'backdrop-blur-xl bg-white/80',
-            colors[toast.variant ?? 'info']
+            colors[variant as AlertVariant]
           )}
         >
           <span className="material-symbols-rounded shrink-0 mt-0.5">
-            {icons[toast.variant] ?? icons.info}
+            {icons[variant as AlertVariant] ?? icons.info}
           </span>
           
           <div className="flex-1 min-w-0">
@@ -63,7 +65,8 @@ export default function ToastContainer() {
             <span className="material-symbols-rounded text-xl">close</span>
           </button>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

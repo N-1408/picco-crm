@@ -114,7 +114,8 @@ type AppAction =
   | { type: 'DELETE_PRODUCT'; id: string }
   | { type: 'ADD_ORDER'; order: Order }
   | { type: 'UPDATE_ORDER'; id: string; order: Partial<Order> }
-  | { type: 'SET_PERIOD'; period: [Date, Date] };
+  | { type: 'SET_PERIOD'; period: [Date, Date] }
+  | { type: 'SET_USER'; user: Agent | null };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -196,6 +197,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         period: action.period
       };
+    case 'SET_USER':
+      return {
+        ...state,
+        user: (action as any).user
+      };
+    case 'SET_USER':
+      return {
+        ...state,
+        user: (action as any).user
+      };
     default:
       return state;
   }
@@ -271,12 +282,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setUser = useCallback((user: Agent | null) => {
-    // lightweight setUser stored in state
-    dispatch({ type: 'SET_STORE', store: {} as Store } as any);
-    // We don't have a SET_USER action in reducer; mutate via dispatching SET_PERIOD as a noop
-    // Instead, update via replacing state completely (low-risk approach)
-    // For compatibility, we'll call dispatch with SET_PERIOD to update period only —
-    // callers should rely on AppProvider methods for authoritative data.
+    dispatch({ type: 'SET_USER', user });
   }, []);
 
   const setLoading = useCallback((loading: boolean) => {
