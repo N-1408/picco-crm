@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 
 const DEFAULT_CENTER = [69.22, 41.32]; // Tashkent coordinates
 
@@ -11,7 +11,7 @@ export default function MapPage() {
   const maplibreRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [currentLngLat, setCurrentLngLat] = useState(null);
-  const { showToast, addToast } = useApp();
+  const { showToast, addToast } = useAppContext();
   const location = useLocation();
   const targetStore = location.state?.store;
 

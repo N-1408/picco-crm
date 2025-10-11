@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 import clsx from 'clsx';
 
 const PICCO_BOT_URL = 'https://t.me/picco_agent_bot';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { user, loading } = useApp();
+  const { user, loading } = useAppContext();
 
   useEffect(() => {
     // Initialize Telegram WebApp
