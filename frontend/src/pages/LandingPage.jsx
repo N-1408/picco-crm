@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+// @ts-nocheck
 import clsx from 'clsx';
 
 const PICCO_BOT_URL = 'https://t.me/picco_agent_bot';
