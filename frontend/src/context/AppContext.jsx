@@ -201,3 +201,6 @@ export function useApp() {
   }
   return context;
 }
+
+// Backwards-compatible alias for existing imports that expect `useAppContext`
+export const useAppContext = useApp;
