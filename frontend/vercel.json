@@ -10,7 +10,19 @@
       "destination": "/assets/$1"
     },
     {
+      "source": "/css/(.*)",
+      "destination": "/css/$1"
+    },
+    {
+      "source": "/js/(.*)",
+      "destination": "/js/$1"
+    },
+    {
       "source": "/(.*)",
+      "has": [
+        { "type": "host", "value": "picco-crm.vercel.app" },
+        { "type": "header", "key": "accept", "value": "text/html*" }
+      ],
       "destination": "/index.html"
     }
   ]
