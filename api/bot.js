@@ -5,8 +5,8 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 const webAppUrl = process.env.WEBAPP_URL || 'https://picco-crm.vercel.app';
-const agentWebAppPath = process.env.AGENT_WEBAPP_PATH || '/agent';
-const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/admin';
+const agentWebAppPath = process.env.AGENT_WEBAPP_PATH || '/frontend/agent';
+const adminWebAppPath = process.env.ADMIN_WEBAPP_PATH || '/frontend/admin';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 const bot = new TelegramBot(token, { polling: false });
