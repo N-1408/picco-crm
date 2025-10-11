@@ -9,18 +9,35 @@
   --text-primary: #f1f5f9;
   --text-secondary: rgba(226, 232, 240, 0.75);
   --accent-blue: #38bdf8;
+  --bottom-nav-height: calc(68px + env(safe-area-inset-bottom, 0px));
+}
+
+html {
+  height: 100%;
 }
 
 body {
+  min-height: 100dvh;
+  height: 100%;
+  margin: 0;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #00a1c6);
+  background-color: #f8f9fb;
+  background-image: linear-gradient(135deg, #1e3a8a, #3b82f6, #00a1c6);
   background-attachment: fixed;
   color: var(--text-primary);
-  min-height: 100vh;
+  overflow: hidden;
 }
 
 body.picco-modal-open {
   overflow: hidden;
+}
+
+#root,
+#app {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .picco-gradient {
@@ -67,38 +84,39 @@ body.picco-modal-open {
   vertical-align: middle;
 }
 
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.6rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
 .picco-body {
-  min-height: 100vh;
+  min-height: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 .picco-layout {
   display: flex;
+  flex-direction: column;
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   position: relative;
 }
 
 .picco-sidebar {
-  width: var(--sidebar-width);
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(22px);
-  border-right: 1px solid rgba(148, 163, 184, 0.18);
-  padding: 1.75rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  position: fixed;
-  inset: 0 auto 0 0;
-  transform: translateX(-110%);
-  transition: transform 0.3s ease;
-  z-index: 50;
-}
-
-.picco-sidebar.is-open {
-  transform: translateX(0);
+  display: none;
 }
 
 .picco-sidebar__header {
@@ -193,7 +211,7 @@ body.picco-modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.1rem 1.5rem;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) 1.5rem 1rem;
   gap: 1rem;
   position: sticky;
   top: 0;
@@ -207,6 +225,13 @@ body.picco-modal-open {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.picco-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
 }
 
 .picco-topbar__toggle {
@@ -252,7 +277,11 @@ body.picco-modal-open {
 
 .picco-main {
   flex: 1;
-  padding: clamp(1.5rem, 2.5vw, 2.75rem) clamp(1.25rem, 4vw, 3rem) 3rem;
+  padding: clamp(1.5rem, 2.5vw, 2.75rem) clamp(1.25rem, 4vw, 3rem)
+    calc(3rem + var(--bottom-nav-height));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .picco-main__inner {
@@ -311,6 +340,93 @@ body.picco-modal-open {
   padding: 2rem 0 3rem;
 }
 
+.picco-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: max(env(safe-area-inset-bottom, 0px) + 0.75rem, 0.75rem);
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 2.5rem));
+  background: rgba(15, 23, 42, 0.92);
+  border-radius: 1.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.35);
+  z-index: 80;
+  backdrop-filter: blur(18px);
+}
+
+.picco-bottom-nav__item {
+  flex: 1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0;
+  border: none;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.7);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.picco-bottom-nav__item:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 3px;
+}
+
+.picco-bottom-nav__icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.picco-bottom-nav__item-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 0;
+  transform: translateY(6px);
+  color: rgba(226, 232, 240, 0.8);
+  pointer-events: none;
+}
+
+.picco-bottom-nav__item.is-active {
+  color: #ede9fe;
+}
+
+.picco-bottom-nav__item.is-active .picco-bottom-nav__icon-wrapper {
+  background: rgba(129, 140, 248, 0.2);
+  transform: translateY(-2px);
+}
+
+.picco-bottom-nav__item.is-active .picco-bottom-nav__item-label {
+  opacity: 1;
+  transform: translateY(0);
+  color: #ede9fe;
+}
+
+.picco-bottom-nav__item-icon {
+  transition: color 0.25s ease;
+}
+
+.picco-bottom-nav__item.is-active .picco-bottom-nav__item-icon {
+  color: #c4b5fd;
+}
+
+.picco-bottom-nav__item:not(.is-active):hover .picco-bottom-nav__icon-wrapper {
+  background: rgba(148, 163, 184, 0.16);
+}
+
 .picco-form-label {
   display: block;
   font-size: 0.8rem;
@@ -333,6 +449,28 @@ body.picco-modal-open {
   outline: none;
   border-color: rgba(125, 211, 252, 0.8);
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+}
+
+.picco-location-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: rgba(15, 23, 42, 0.35);
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.85rem 1rem;
+}
+
+.picco-location-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.picco-location-picker__summary {
+  font-size: 0.85rem;
+  color: rgba(226, 232, 240, 0.8);
 }
 
 .picco-btn {
@@ -576,6 +714,11 @@ body.picco-modal-open {
   box-shadow: var(--glass-shadow);
 }
 
+.picco-list__item.is-active {
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 0 20px 36px rgba(14, 116, 224, 0.35);
+}
+
 .picco-list__icon {
   width: 2.25rem;
   height: 2.25rem;
@@ -732,6 +875,10 @@ body.picco-modal-open {
   flex-direction: column;
 }
 
+.picco-modal__dialog--wide {
+  width: min(720px, 100%);
+}
+
 .picco-modal__header {
   padding: 1.2rem 1.5rem;
   border-bottom: 1px solid rgba(226, 232, 240, 0.7);
@@ -768,6 +915,81 @@ body.picco-modal-open {
   color: #94a3b8;
   font-size: 1.1rem;
   cursor: pointer;
+}
+
+.picco-map-frame {
+  width: 100%;
+  height: min(60dvh, 420px);
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+  position: relative;
+}
+
+.picco-location-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 0.5rem 0.75rem;
+}
+
+.picco-location-search .material-icons {
+  color: #2563eb;
+  font-size: 1.4rem;
+}
+
+.picco-location-search input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  outline: none;
+  color: #0f172a;
+}
+
+.picco-location-hint {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.picco-location-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.picco-maplibre-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.picco-map-empty {
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.picco-map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #0f172a;
+  font-size: 0.85rem;
+}
+
+.picco-map-popup strong {
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.picco-map-popup span:last-child {
+  color: #2563eb;
+  font-weight: 600;
 }
 
 .picco-list__icon,
@@ -827,21 +1049,4 @@ body.picco-modal-open {
   background: rgba(15, 23, 42, 0.35);
   text-align: center;
   color: var(--text-secondary);
-}
-
-@media (min-width: 1024px) {
-  .picco-sidebar {
-    transform: translateX(0);
-    position: sticky;
-    top: 0;
-    height: 100vh;
-  }
-
-  .picco-main-area {
-    margin-left: var(--sidebar-width);
-  }
-
-  .picco-topbar__toggle {
-    display: none;
-  }
 }

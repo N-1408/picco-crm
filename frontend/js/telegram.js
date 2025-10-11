@@ -7,6 +7,11 @@ export function initTelegram() {
   if (tg) {
     tg.ready();
     tg.expand();
+    try {
+      tg.requestFullscreen?.();
+    } catch (error) {
+      // requestFullscreen may throw on some platforms; ignore
+    }
   }
   return tg;
 }

@@ -1,4 +1,4 @@
-import {
+﻿import {
   loginAdmin,
   fetchAdminStats,
   fetchAdminProducts,
@@ -17,10 +17,10 @@ import {
   setAdminToken,
   clearAdminToken
 } from './api.js';
-import { showToast, renderEmptyState } from './ui.js';
+import { showToast, renderEmptyState, initBottomNavigation } from './ui.js';\nimport { initTelegram } from './telegram.js';
+import { createMap, createMarker, createPopup, parseLatLng, formatLatLng as formatLatLngText, getMapLibre } from './maps.js';
 
 const page = document.body.dataset.page;
-const DESKTOP_BREAKPOINT = 1024;
 
 let productCache = [];
 let storeCache = [];
@@ -43,54 +43,7 @@ function ensureAuthenticated() {
 }
 
 function setupShell() {
-  const sidebar = document.querySelector('[data-sidebar]');
-  if (!sidebar) {
-    return;
-  }
-
-  if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-    sidebar.classList.add('is-open');
-  }
-
-  const openers = document.querySelectorAll('[data-sidebar-toggle]');
-  const closers = document.querySelectorAll('[data-sidebar-close]');
-  const navLinks = document.querySelectorAll('[data-nav-link]');
-
-  openers.forEach((button) => {
-    button.addEventListener('click', () => {
-      sidebar.classList.add('is-open');
-    });
-  });
-
-  const closeSidebar = () => {
-    if (window.innerWidth < DESKTOP_BREAKPOINT) {
-      sidebar.classList.remove('is-open');
-    }
-  };
-
-  closers.forEach((button) => {
-    button.addEventListener('click', () => {
-      closeSidebar();
-      if (window.history.length > 1) {
-        window.history.back();
-      }
-    });
-  });
-
-  navLinks.forEach((link) => {
-    if (link.dataset.navLink === page) {
-      link.classList.add('is-active');
-    }
-    link.addEventListener('click', () => {
-      closeSidebar();
-    });
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      sidebar.classList.remove('is-open');
-    }
-  });
+  initBottomNavigation(page);
 }
 
 function initCollapsibles() {
@@ -413,44 +366,85 @@ async function initProductsPage() {
 }
 
 async function initStoresPage() {
-  const storeList = document.getElementById('admin-stores-list');
-  const storeFormWrapper = document.getElementById('store-form-wrapper');
-  const storeForm = document.getElementById('store-form');
-  const storeCancel = document.getElementById('store-form-cancel');
-  const editForm = document.getElementById('store-edit-form');
-  const editModal = document.getElementById('store-edit-modal');
-  const deleteModal = document.getElementById('store-delete-modal');
-  const deleteConfirmButton = document.getElementById('store-delete-confirm');
+  const storeList = document.getElementById("admin-stores-list");
+  const storeFormWrapper = document.getElementById("store-form-wrapper");
+  const storeForm = document.getElementById("store-form");
+  const storeCancel = document.getElementById("store-form-cancel");
+  const editForm = document.getElementById("store-edit-form");
+  const editModal = document.getElementById("store-edit-modal");
+  const deleteModal = document.getElementById("store-delete-modal");
+  const deleteConfirmButton = document.getElementById("store-delete-confirm");
+  const mapContainer = document.getElementById("admin-stores-map");
+  const mapEmptyState = document.getElementById("admin-stores-map-empty");
 
   if (!storeList || !storeForm) return;
 
   let editingStoreId = null;
   let deletingStoreId = null;
+  let storesMap = null;
+  let storeMarkers = [];
+  let storePopup = null;
+  let activeStoreId = null;
 
   const toggleStoreForm = (open) => {
     if (!storeFormWrapper) return;
-    storeFormWrapper.classList.toggle('is-open', open);
+    storeFormWrapper.classList.toggle("is-open", open);
   };
 
-  storeCancel?.addEventListener('click', () => {
+  storeCancel?.addEventListener("click", () => {
     storeForm.reset();
     toggleStoreForm(false);
   });
 
-  const renderStores = (stores) => {
-    if (!stores.length) {
-      renderEmptyState(storeList, 'Do\'konlar ro\'yxati bo\'sh.');
-      return;
+  const resolveLocationMeta = (rawLocation) => {
+    if (!rawLocation) return null;
+    if (typeof rawLocation === "object") return rawLocation;
+    if (typeof rawLocation === "string") {
+      try {
+        return JSON.parse(rawLocation);
+      } catch {
+        return null;
+      }
     }
+    return null;
+  };
 
-    storeList.innerHTML = stores
-      .map(
-        (store) => `
-        <li class="picco-list__item">
-          <div>
+  const highlightStoreInList = (storeId, { scrollIntoView = false } = {}) => {
+    storeList.querySelectorAll(".picco-list__item.is-active").forEach((item) => {
+      item.classList.remove("is-active");
+    });
+    activeStoreId = null;
+    if (!storeId) return;
+    const target = storeList.querySelector(.picco-list__item[data-store-id=""]);
+    if (target) {
+      target.classList.add("is-active");
+      if (scrollIntoView) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      activeStoreId = storeId;
+    }
+  };
+
+  const renderStores = (stores) => {
+  if (!stores.length) {
+    renderEmptyState(storeList, "Do'konlar ro'yxati bo'sh.");
+    return;
+  }
+
+  storeList.innerHTML = stores
+    .map((store) => {
+      const locationMeta = resolveLocationMeta(store.location);
+      const point = parseLatLng(locationMeta ?? store.location);
+      const addressText = locationMeta?.address ?? store.address ?? "Manzil kiritilmagan";
+      const coordinatesText = point ? `Koordinata: ${formatLatLngText(point)}` : "Lokatsiya kiritilmagan";
+
+      return `
+        <li class="picco-list__item" data-store-id="${store.id}">
+          <div class="space-y-1">
             <p class="font-semibold">${store.name}</p>
-            <p class="text-sm text-slate-300">${store.phone ?? 'Telefon mavjud emas'}</p>
-            <p class="text-sm text-slate-400">${store.address ?? 'Manzil kiritilmagan'}</p>
+            <p class="text-sm text-slate-300">${store.phone ?? "Telefon mavjud emas"}</p>
+            <p class="text-sm text-slate-400">${addressText}</p>
+            <p class="text-xs text-slate-400">${coordinatesText}</p>
           </div>
           <div class="picco-tile__actions">
             <button type="button" class="picco-chip" data-action="edit" data-id="${store.id}">
@@ -463,98 +457,223 @@ async function initStoresPage() {
             </button>
           </div>
         </li>
-      `
-      )
-      .join('');
+      `;
+    })
+    .join("");
+
+  if (activeStoreId) {
+    highlightStoreInList(activeStoreId);
+  }
+};
+
+  const focusStoreOnMap = async (storeId, { scrollIntoView = false } = {}) => {
+  if (!storeId) return;
+  if (!storesMap) {
+    await renderStoreMap(storeCache);
+  }
+  const target = storeMarkers.find((entry) => entry.storeId === storeId);
+  if (!target || !storesMap) return;
+
+  storesMap.flyTo({
+    center: [target.coords.lng, target.coords.lat],
+    zoom: Math.max(storesMap.getZoom() ?? 12, 14),
+    speed: 0.9
+  });
+
+  if (!storePopup) {
+    storePopup = await createPopup();
+  }
+
+  const addressLine = target.address || "Manzil kiritilmagan";
+  storePopup
+    .setLngLat([target.coords.lng, target.coords.lat])
+    .setHTML(`
+      <div class="picco-map-popup">
+        <strong>${target.name}</strong>
+        <span>${addressLine}</span>
+        <span>${formatLatLngText(target.coords)}</span>
+      </div>
+    `)
+    .addTo(storesMap);
+
+  highlightStoreInList(storeId, { scrollIntoView });
+};
+
+  const renderStoreMap = async (stores) => {
+    if (!mapContainer) return;
+    const maplibre = await getMapLibre();
+
+    const items = (stores ?? [])
+      .map((store) => {
+        const locationMeta = resolveLocationMeta(store.location);
+        const coords = parseLatLng(locationMeta ?? store.location);
+        if (!coords) return null;
+        return {
+          id: store.id,
+          name: store.name,
+          coords,
+          address: locationMeta?.address ?? store.address ?? ""
+        };
+      })
+      .filter(Boolean);
+
+    if (!items.length) {
+      mapEmptyState?.classList.remove("hidden");
+      storeMarkers.forEach((entry) => entry.marker.remove());
+      storeMarkers = [];
+      if (storePopup) {
+        storePopup.remove();
+        storePopup = null;
+      }
+      highlightStoreInList(null);
+      return;
+    }
+
+    mapEmptyState?.classList.add("hidden");
+
+    if (!storesMap) {
+      storesMap = await createMap(mapContainer, {
+        center: [items[0].coords.lng, items[0].coords.lat],
+        zoom: 6
+      });
+    }
+
+    if (!storePopup) {
+      storePopup = await createPopup();
+    }
+
+    storeMarkers.forEach((entry) => entry.marker.remove());
+    storeMarkers = [];
+
+    const bounds = new maplibre.LngLatBounds();
+
+    for (const item of items) {
+      const marker = await createMarker({ color: "#38BDF8" });
+      marker.setLngLat([item.coords.lng, item.coords.lat]).addTo(storesMap);
+      marker.getElement().addEventListener("click", () => {
+        focusStoreOnMap(item.id, { scrollIntoView: true });
+      });
+
+      storeMarkers.push({
+        storeId: item.id,
+        marker,
+        coords: item.coords,
+        address: item.address,
+        name: item.name
+      });
+
+      bounds.extend([item.coords.lng, item.coords.lat]);
+    }
+
+    if (!bounds.isEmpty()) {
+      storesMap.fitBounds(bounds, { padding: 60, maxZoom: 15 });
+      if (items.length === 1) {
+        storesMap.easeTo({
+          center: [items[0].coords.lng, items[0].coords.lat],
+          zoom: 14,
+          duration: 600
+        });
+      }
+    }
+
+    if (activeStoreId) {
+      highlightStoreInList(activeStoreId);
+    }
   };
 
   const refresh = async () => {
     const { stores } = await fetchAdminStores();
     storeCache = stores ?? [];
     renderStores(storeCache);
+    await renderStoreMap(storeCache);
   };
 
-  storeList.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action]');
-    if (!(target instanceof HTMLElement)) return;
-    const { id, action } = target.dataset;
-    if (!id || !action) return;
+  storeList.addEventListener("click", (event) => {
+    const actionTarget = event.target.closest("[data-action]");
+    if (actionTarget instanceof HTMLElement) {
+      const { id, action } = actionTarget.dataset;
+      if (!id || !action) return;
 
-    if (action === 'edit') {
-      editingStoreId = id;
-      const store = storeCache.find((item) => item.id === id);
-      if (!store || !editForm) return;
-      editForm.elements.namedItem('id').value = store.id;
-      editForm.elements.namedItem('name').value = store.name ?? '';
-      editForm.elements.namedItem('phone').value = store.phone ?? '';
-      editForm.elements.namedItem('address').value = store.address ?? '';
-      openModalById('store-edit-modal');
+      if (action === "edit") {
+        editingStoreId = id;
+        const store = storeCache.find((item) => item.id === id);
+        if (!store || !editForm) return;
+        editForm.elements.namedItem("id").value = store.id;
+        editForm.elements.namedItem("name").value = store.name ?? "";
+        editForm.elements.namedItem("phone").value = store.phone ?? "";
+        editForm.elements.namedItem("address").value = store.address ?? "";
+        openModalById("store-edit-modal");
+      }
+
+      if (action === "delete") {
+        deletingStoreId = id;
+        openModalById("store-delete-modal");
+      }
+      return;
     }
 
-    if (action === 'delete') {
-      deletingStoreId = id;
-      openModalById('store-delete-modal');
+    const item = event.target.closest(".picco-list__item");
+    if (item instanceof HTMLElement && item.dataset.storeId) {
+      focusStoreOnMap(item.dataset.storeId, { scrollIntoView: false });
     }
   });
 
-  storeForm.addEventListener('submit', async (event) => {
+  storeForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(storeForm);
     const payload = {
-      name: formData.get('name'),
-      phone: formData.get('phone'),
-      address: formData.get('address')
+      name: formData.get("name"),
+      phone: formData.get("phone"),
+      address: formData.get("address")
     };
 
     try {
       await createAdminStore(payload);
-      showToast('Do\'kon qo\'shildi', 'success');
+      showToast("Do'kon qo'shildi", "success");
       storeForm.reset();
       toggleStoreForm(false);
-      refresh();
+      await refresh();
     } catch (error) {
-      showToast(error.message, 'error');
+      showToast(error.message, "error");
     }
   });
 
-  editForm?.addEventListener('submit', async (event) => {
+  editForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!editingStoreId) return;
     const formData = new FormData(editForm);
     const payload = {
-      name: formData.get('name'),
-      phone: formData.get('phone'),
-      address: formData.get('address')
+      name: formData.get("name"),
+      phone: formData.get("phone"),
+      address: formData.get("address")
     };
 
     try {
       await updateAdminStore(editingStoreId, payload);
-      showToast('Do\'kon yangilandi', 'success');
+      showToast("Do'kon yangilandi", "success");
       closeModal(editModal);
       editingStoreId = null;
-      refresh();
+      await refresh();
     } catch (error) {
-      showToast(error.message, 'error');
+      showToast(error.message, "error");
     }
   });
 
-  deleteConfirmButton?.addEventListener('click', async () => {
+  deleteConfirmButton?.addEventListener("click", async () => {
     if (!deletingStoreId) return;
     try {
       await deleteAdminStore(deletingStoreId);
-      showToast('Do\'kon o\'chirildi', 'success');
+      showToast("Do'kon o'chirildi", "success");
       closeModal(deleteModal);
       deletingStoreId = null;
-      refresh();
+      await refresh();
     } catch (error) {
-      showToast(error.message, 'error');
+      showToast(error.message, "error");
     }
   });
 
-  refresh();
-}
-
-async function initAgentsPage() {
+  await refresh();
+}async function initAgentsPage() {
   const tableBody = document.getElementById('agents-table-body');
   if (!tableBody) return;
 
@@ -774,3 +893,6 @@ function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+
+
+

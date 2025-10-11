@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Do'konlar | PICCO Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,47 +22,15 @@
       };
     </script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
   <body class="picco-body" data-page="agent-stores">
     <div class="picco-layout">
-      <aside class="picco-sidebar" data-sidebar>
-        <div class="picco-sidebar__header">
-          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
-            <span class="material-icons">arrow_back</span>
-          </button>
-          <div class="picco-sidebar__brand">
-            <span class="picco-sidebar__brand-logo">PICCO</span>
-            <span class="picco-sidebar__brand-subtitle">Agent paneli</span>
-          </div>
-        </div>
-        <nav class="picco-sidebar__nav">
-          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="agent-dashboard">
-            <span class="material-icons">space_dashboard</span>
-            <span>Dashboard</span>
-          </a>
-          <a href="./orders.html" class="picco-sidebar__link" data-nav-link="agent-orders">
-            <span class="material-icons">inventory_2</span>
-            <span>Buyurtmalar</span>
-          </a>
-          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="agent-stores">
-            <span class="material-icons">storefront</span>
-            <span>Do'konlar</span>
-          </a>
-          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="agent-stats">
-            <span class="material-icons">insights</span>
-            <span>Statistika</span>
-          </a>
-        </nav>
-      </aside>
-
       <div class="picco-main-area">
         <header class="picco-topbar">
           <div class="picco-topbar__left">
-            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
-              <span class="material-icons">menu</span>
-            </button>
             <h1 class="picco-topbar__title">Do'konlar boshqaruvi</h1>
           </div>
         </header>
@@ -96,6 +64,24 @@
                     <label class="picco-form-label" for="store-address">Manzil</label>
                     <input name="address" id="store-address" type="text" class="picco-input" />
                   </div>
+                  <div class="md:col-span-3">
+                    <label class="picco-form-label" for="agent-store-location-summary">Do'kon lokatsiyasi</label>
+                    <div class="picco-location-picker">
+                      <div class="picco-location-picker__row">
+                        <button type="button" class="picco-btn picco-btn--primary" id="agent-store-location-btn">
+                          <span class="material-icons">map</span>
+                          Xaritada belgilash
+                        </button>
+                        <button type="button" class="picco-btn picco-btn--ghost" id="agent-store-location-clear">
+                          <span class="material-icons">undo</span>
+                          Tozalash
+                        </button>
+                      </div>
+                      <p id="agent-store-location-summary" class="picco-location-picker__summary">
+                        Lokatsiya tanlanmagan
+                      </p>
+                    </div>
+                  </div>
                   <div class="md:col-span-3 flex items-center justify-end gap-3">
                     <button type="button" class="picco-btn picco-btn--ghost" id="agent-store-cancel">
                       <span class="material-icons">close</span>
@@ -119,7 +105,102 @@
           </div>
         </main>
 
+        <nav class="picco-bottom-nav" data-bottom-nav aria-label="Agent navigatsiya">
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-dashboard"
+            data-icon="space_dashboard"
+            data-href="./dashboard.html"
+            aria-label="Dashboard"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>space_dashboard</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Bosh sahifa</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-orders"
+            data-icon="inventory_2"
+            data-href="./orders.html"
+            aria-label="Buyurtmalar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>inventory_2</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Buyurtmalar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-stores"
+            data-icon="storefront"
+            data-href="./stores.html"
+            aria-label="Do'konlar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>storefront</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Do'konlar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-stats"
+            data-icon="insights"
+            data-href="./stats.html"
+            aria-label="Statistika"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>insights</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Statistika</span>
+          </button>
+        </nav>
+
         <footer class="picco-footer">&copy; PICCO 2025</footer>
+      </div>
+    </div>
+
+    <div id="agent-location-modal" class="picco-modal hidden" data-modal>
+      <div class="picco-modal__dialog picco-modal__dialog--wide">
+        <div class="picco-modal__header">
+          <h2 class="picco-modal__title">Do'kon lokatsiyasini tanlang</h2>
+          <button type="button" class="picco-modal__close" data-modal-close aria-label="Yopish">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="picco-modal__body">
+          <div class="picco-location-search">
+            <span class="material-icons">search</span>
+            <input
+              id="agent-location-search"
+              type="text"
+              class="picco-input"
+              placeholder="Manzil yoki do'kon nomini kiriting"
+            />
+          </div>
+          <div class="picco-location-actions">
+            <button type="button" class="picco-btn picco-btn--ghost" id="agent-location-locate">
+              <span class="material-icons">my_location</span>
+              Mening lokatsiyam
+            </button>
+          </div>
+          <div id="agent-location-map" class="picco-map-frame"></div>
+          <p class="picco-location-hint">
+            Xaritada kerakli nuqtani bosing yoki qidiruv orqali toping. Markazdagi marker tanlangan joyni bildiradi.
+          </p>
+        </div>
+        <div class="picco-modal__footer">
+          <button type="button" class="picco-btn picco-btn--ghost" data-modal-close id="agent-location-cancel">
+            Bekor qilish
+          </button>
+          <button type="button" class="picco-btn picco-btn--primary" id="agent-location-confirm">
+            Tasdiqlash
+          </button>
+        </div>
       </div>
     </div>
 

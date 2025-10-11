@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Statistika | PICCO Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,47 +22,15 @@
       };
     </script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
   <body class="picco-body" data-page="agent-stats">
     <div class="picco-layout">
-      <aside class="picco-sidebar" data-sidebar>
-        <div class="picco-sidebar__header">
-          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
-            <span class="material-icons">arrow_back</span>
-          </button>
-          <div class="picco-sidebar__brand">
-            <span class="picco-sidebar__brand-logo">PICCO</span>
-            <span class="picco-sidebar__brand-subtitle">Agent paneli</span>
-          </div>
-        </div>
-        <nav class="picco-sidebar__nav">
-          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="agent-dashboard">
-            <span class="material-icons">space_dashboard</span>
-            <span>Dashboard</span>
-          </a>
-          <a href="./orders.html" class="picco-sidebar__link" data-nav-link="agent-orders">
-            <span class="material-icons">inventory_2</span>
-            <span>Buyurtmalar</span>
-          </a>
-          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="agent-stores">
-            <span class="material-icons">storefront</span>
-            <span>Do'konlar</span>
-          </a>
-          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="agent-stats">
-            <span class="material-icons">insights</span>
-            <span>Statistika</span>
-          </a>
-        </nav>
-      </aside>
-
       <div class="picco-main-area">
         <header class="picco-topbar">
           <div class="picco-topbar__left">
-            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
-              <span class="material-icons">menu</span>
-            </button>
             <h1 class="picco-topbar__title">Statistika</h1>
           </div>
         </header>
@@ -160,6 +128,61 @@
             </section>
           </div>
         </main>
+
+        <nav class="picco-bottom-nav" data-bottom-nav aria-label="Agent navigatsiya">
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-dashboard"
+            data-icon="space_dashboard"
+            data-href="./dashboard.html"
+            aria-label="Dashboard"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>space_dashboard</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Bosh sahifa</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-orders"
+            data-icon="inventory_2"
+            data-href="./orders.html"
+            aria-label="Buyurtmalar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>inventory_2</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Buyurtmalar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-stores"
+            data-icon="storefront"
+            data-href="./stores.html"
+            aria-label="Do'konlar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>storefront</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Do'konlar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="agent-stats"
+            data-icon="insights"
+            data-href="./stats.html"
+            aria-label="Statistika"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>insights</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Statistika</span>
+          </button>
+        </nav>
 
         <footer class="picco-footer">&copy; PICCO 2025</footer>
       </div>

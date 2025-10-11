@@ -1,4 +1,4 @@
-import {
+﻿import {
   fetchAgentProfile,
   fetchAgentProducts,
   fetchAgentStores,
@@ -8,46 +8,10 @@ import {
   fetchAgentStats
 } from './api.js';
 import { initTelegram, getTelegramUser } from './telegram.js';
-import { showToast, renderEmptyState } from './ui.js';
+import { showToast, renderEmptyState, initBottomNavigation } from './ui.js';
+import { createMap, createMarker, parseLatLng, formatLatLng as formatLatLngText } from './maps.js';
 
 const page = document.body.dataset.page;
-const DESKTOP_BREAKPOINT = 1024;
-
-function setupAgentShell() {
-  const sidebar = document.querySelector('[data-sidebar]');
-  if (!sidebar) return;
-
-  if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-    sidebar.classList.add('is-open');
-  }
-
-  const openers = document.querySelectorAll('[data-sidebar-toggle]');
-  const closers = document.querySelectorAll('[data-sidebar-close]');
-  const navLinks = document.querySelectorAll('[data-nav-link]');
-
-  const closeSidebar = () => {
-    if (window.innerWidth < DESKTOP_BREAKPOINT) {
-      sidebar.classList.remove('is-open');
-    }
-  };
-
-  openers.forEach((button) => button.addEventListener('click', () => sidebar.classList.add('is-open')));
-  closers.forEach((button) =>
-    button.addEventListener('click', () => {
-      closeSidebar();
-      if (window.history.length > 1) {
-        window.history.back();
-      }
-    })
-  );
-
-  navLinks.forEach((link) => {
-    if (link.dataset.navLink === page) {
-      link.classList.add('is-active');
-    }
-    link.addEventListener('click', () => closeSidebar());
-  });
-}
 
 function initCollapsibles() {
   document.querySelectorAll('[data-collapse-target]').forEach((trigger) => {
@@ -253,7 +217,7 @@ function renderRecentOrders(container, orders) {
         </li>
       `;
     })
-    .join('');
+    .join(');
 }
 
 async function initDashboardPage(context) {
@@ -355,11 +319,11 @@ async function initOrdersPage(context) {
   if (productsSelect) {
     productsSelect.innerHTML = products
       .map((product) => `<option value="${product.id}">${product.name}</option>`)
-      .join('');
+      .join(');
   }
 
   if (storesSelect) {
-    storesSelect.innerHTML = stores.map((store) => `<option value="${store.id}">${store.name}</option>`).join('');
+    storesSelect.innerHTML = stores.map((store) => `<option value="${store.id}">${store.name}</option>`).join(');
   }
 
   const renderOrders = (items) => {
@@ -387,7 +351,7 @@ async function initOrdersPage(context) {
           </tr>
         `;
       })
-      .join('');
+      .join(');
   };
 
   renderOrders(orders);
@@ -418,43 +382,356 @@ async function initOrdersPage(context) {
     }
   });
 }
-
 async function initStoresPage(context) {
   const storeList = document.getElementById('agent-stores-list');
   const storeForm = document.getElementById('agent-store-form');
   const formWrapper = document.getElementById('agent-store-form-wrapper');
   const cancelButton = document.getElementById('agent-store-cancel');
+  const locationButton = document.getElementById('agent-store-location-btn');
+  const locationClearButton = document.getElementById('agent-store-location-clear');
+  const locationSummary = document.getElementById('agent-store-location-summary');
+  const locationModal = document.getElementById('agent-location-modal');
+  const locationMapEl = document.getElementById('agent-location-map');
+  const locationSearchInput = document.getElementById('agent-location-search');
+  const locationLocateButton = document.getElementById('agent-location-locate');
+  const locationConfirmButton = document.getElementById('agent-location-confirm');
+  const locationCancelButton = document.getElementById('agent-location-cancel');
+
   if (!storeList || !storeForm) return;
 
   const { stores } = await fetchAgentStores(context.profile.id);
 
+  const NOMINATIM_SEARCH_ENDPOINT = 'https://nominatim.openstreetmap.org/search';
+  const NOMINATIM_REVERSE_ENDPOINT = 'https://nominatim.openstreetmap.org/reverse';
+
+  let selectedLocation = null;
+  let locationMap = null;
+  let locationMarker = null;
+  let userPositionMarker = null;
+  let mapInitialized = false;
+  let reverseLookupController = null;
+
+  const abortReverseLookup = () => {
+    if (reverseLookupController) {
+      reverseLookupController.abort();
+      reverseLookupController = null;
+    }
+  };
+
+  const updateLocationSummary = () => {
+    if (!locationSummary) return;
+    if (!selectedLocation) {
+      locationSummary.textContent = 'Lokatsiya tanlanmagan';
+      return;
+    }
+    const parts = [];
+    if (selectedLocation.address) {
+      parts.push(selectedLocation.address);
+    }
+    parts.push(formatLatLngText(selectedLocation));
+    locationSummary.textContent = parts.join(' • ');
+  };
+
+  const syncMarker = () => {
+    if (!locationMarker || !locationMap) return;
+    if (!selectedLocation) {
+      locationMarker.remove();
+      return;
+    }
+    locationMarker.setLngLat([selectedLocation.lng, selectedLocation.lat]).addTo(locationMap);
+  };
+
+  const lookupAddress = async (lat, lng) => {
+    abortReverseLookup();
+    const controller = new AbortController();
+    reverseLookupController = controller;
+
+    try {
+      const params = new URLSearchParams({
+        format: 'jsonv2',
+        lat: lat.toString(),
+        lon: lng.toString(),
+        zoom: '18',
+        addressdetails: '1'
+      });
+      const response = await fetch(`${NOMINATIM_REVERSE_ENDPOINT}?${params}`, {
+        signal: controller.signal,
+        headers: { 'Accept-Language': 'uz,en' }
+      });
+      if (!response.ok) {
+        throw new Error('Reverse geocode failed');
+      }
+      const payload = await response.json();
+      if (controller.signal.aborted) return;
+      selectedLocation = {
+        ...selectedLocation,
+        address: payload.display_name ?? selectedLocation?.address ?? '
+      };
+      updateLocationSummary();
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        // ignore lookup errors silently
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        reverseLookupController = null;
+      }
+    }
+  };
+
+  const setSelectedLocation = (value, { skipReverseLookup = false } = {}) => {
+    if (!value) {
+      selectedLocation = null;
+      abortReverseLookup();
+      syncMarker();
+      updateLocationSummary();
+      return;
+    }
+    const lat = Number(value.lat);
+    const lng = Number(value.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+    const address = value.address?.trim() || selectedLocation?.address || ';
+    selectedLocation = { lat, lng, address };
+    syncMarker();
+    updateLocationSummary();
+    if (locationMap) {
+      locationMap.flyTo({ center: [lng, lat], zoom: Math.max(locationMap.getZoom() ?? 12, 14), speed: 0.8 });
+    }
+    if (!skipReverseLookup) {
+      lookupAddress(lat, lng);
+    }
+  };
+
+  const resetLocationState = () => {
+    selectedLocation = null;
+    abortReverseLookup();
+    if (locationSearchInput) {
+      locationSearchInput.value = ';
+    }
+    syncMarker();
+    updateLocationSummary();
+  };
+
+  const locateUser = async () => {
+    if (!navigator.geolocation) {
+      showToast('Geolokatsiya qurilmada mavjud emas.', 'warning');
+      return;
+    }
+    try {
+      await ensureMapReady();
+    } catch (error) {
+      showToast(error.message, 'error');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        if (!userPositionMarker) {
+          userPositionMarker = await createMarker({ color: '#34D399' });
+        }
+        if (locationMap) {
+          userPositionMarker.setLngLat([coords.lng, coords.lat]).addTo(locationMap);
+          locationMap.flyTo({ center: [coords.lng, coords.lat], zoom: 15, speed: 0.9 });
+        }
+        showToast('Joriy joylashuv topildi.', 'info');
+      },
+      (error) => {
+        const message =
+          error.code === error.PERMISSION_DENIED
+            ? 'Joylashuvga ruxsat berilmadi.'
+            : 'Joylashuvni aniqlab bo'lmadi.';
+        showToast(message, 'warning');
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  };
+
+  const closeLocationModal = () => {
+    if (!locationModal) return;
+    locationModal.classList.add('hidden');
+    document.body.classList.remove('picco-modal-open');
+    abortReverseLookup();
+  };
+
+  const ensureMapReady = async () => {
+    if (!locationMapEl) return;
+    const initial = selectedLocation ?? { lat: 41.3111, lng: 69.2797 };
+    const initialCenter = [initial.lng, initial.lat];
+
+    if (!mapInitialized) {
+      locationMap = await createMap(locationMapEl, {
+        center: initialCenter,
+        zoom: selectedLocation ? 15 : 12
+      });
+
+      locationMarker = await createMarker({ color: '#6366F1', draggable: true });
+      locationMarker.on('dragend', () => {
+        const lngLat = locationMarker.getLngLat();
+        setSelectedLocation({ lat: lngLat.lat, lng: lngLat.lng });
+      });
+
+      locationMap.on('click', (event) => {
+        const { lat, lng } = event.lngLat;
+        setSelectedLocation({ lat, lng });
+        showToast('Lokatsiya tanlandi.', 'info');
+      });
+
+      mapInitialized = true;
+    }
+
+    if (locationMap) {
+      locationMap.resize();
+      if (selectedLocation) {
+        locationMap.jumpTo({ center: [selectedLocation.lng, selectedLocation.lat], zoom: Math.max(locationMap.getZoom() ?? 12, 14) });
+      }
+      syncMarker();
+      setTimeout(() => locationMap.resize(), 150);
+    }
+  };
+
+  const openLocationModal = async () => {
+    if (!locationModal) return;
+    locationModal.classList.remove('hidden');
+    document.body.classList.add('picco-modal-open');
+    if (locationSearchInput) {
+      locationSearchInput.value = selectedLocation?.address ?? ';
+    }
+    try {
+      await ensureMapReady();
+    } catch (error) {
+      closeLocationModal();
+      showToast(error.message, 'error');
+    }
+  };
+
+  const searchLocation = async (query) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    try {
+      await ensureMapReady();
+      const params = new URLSearchParams({
+        q: trimmed,
+        format: 'json',
+        limit: '1'
+      });
+      const response = await fetch(`${NOMINATIM_SEARCH_ENDPOINT}?${params}`, {
+        headers: { 'Accept-Language': 'uz,en' }
+      });
+      if (!response.ok) {
+        throw new Error('Geocode request failed');
+      }
+      const results = await response.json();
+      if (!Array.isArray(results) || !results.length) {
+        showToast('Natija topilmadi.', 'warning');
+        return;
+      }
+      const [result] = results;
+      const lat = Number(result.lat);
+      const lng = Number(result.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        showToast('Natija noto'g'ri koordinatalarga ega.', 'warning');
+        return;
+      }
+      setSelectedLocation({ lat, lng, address: result.display_name ?? ' }, { skipReverseLookup: true });
+      showToast('Manzil topildi.', 'success');
+    } catch (error) {
+      showToast('Qidiruv vaqtida xatolik yuz berdi.', 'error');
+    }
+  };
+
+  updateLocationSummary();
+
   const renderCards = (items) => {
     if (!items.length) {
-      renderEmptyState(storeList, 'Hali do\'konlar qo\'shilmagan.');
+      renderEmptyState(storeList, 'Hali do'konlar qo'shilmagan.');
       return;
     }
 
     storeList.innerHTML = items
-      .map(
-        (store) => `
+      .map((store) => {
+        let locationMeta = null;
+        if (store.location && typeof store.location === 'object') {
+          locationMeta = store.location;
+        } else if (store.location && typeof store.location === 'string') {
+          try {
+            locationMeta = JSON.parse(store.location);
+          } catch {
+            locationMeta = null;
+          }
+        }
+        const point = parseLatLng(locationMeta ?? store.location);
+        const addressText = locationMeta?.address ?? store.address ?? 'Manzil kiritilmagan';
+        const coordinatesText = point ? `Koordinata: ${formatLatLngText(point)}` : 'Lokatsiya kiritilmagan';
+
+        return `
         <article class="picco-tile" data-store-id="${store.id}">
           <span class="picco-tile__icon material-icons">storefront</span>
           <div class="picco-tile__body">
             <h3>${store.name}</h3>
             <p class="picco-tile__meta">${store.phone ?? 'Telefon mavjud emas'}</p>
-            <p class="picco-tile__meta">${store.address ?? 'Manzil kiritilmagan'}</p>
+            <p class="picco-tile__meta">${addressText}</p>
+            <p class="picco-tile__meta">${coordinatesText}</p>
           </div>
         </article>
-      `
-      )
-      .join('');
+      `;
+      })
+      .join(');
   };
 
   renderCards(stores);
 
   cancelButton?.addEventListener('click', () => {
     storeForm.reset();
+    resetLocationState();
     formWrapper?.classList.remove('is-open');
+  });
+
+  storeForm.addEventListener('reset', resetLocationState);
+
+  locationButton?.addEventListener('click', () => {
+    openLocationModal();
+  });
+
+  locationClearButton?.addEventListener('click', () => {
+    resetLocationState();
+    showToast('Lokatsiya tozalandi.', 'info');
+  });
+
+  locationConfirmButton?.addEventListener('click', () => {
+    if (!selectedLocation) {
+      showToast('Iltimos, xaritada lokatsiyani tanlang.', 'warning');
+      return;
+    }
+    closeLocationModal();
+    updateLocationSummary();
+  });
+
+  locationCancelButton?.addEventListener('click', () => {
+    closeLocationModal();
+  });
+
+  locationLocateButton?.addEventListener('click', () => locateUser());
+
+  locationSearchInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      searchLocation(event.currentTarget.value);
+    }
+  });
+
+  locationModal?.querySelectorAll('[data-modal-close]')?.forEach((button) => {
+    button.addEventListener('click', closeLocationModal);
+  });
+
+  locationModal?.addEventListener('click', (event) => {
+    if (event.target === locationModal) {
+      closeLocationModal();
+    }
   });
 
   storeForm.addEventListener('submit', async (event) => {
@@ -467,10 +744,19 @@ async function initStoresPage(context) {
       address: formData.get('address')
     };
 
+    if (selectedLocation) {
+      payload.location = {
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        address: selectedLocation.address || formData.get('address') || '
+      };
+    }
+
     try {
       await createAgentStore(payload);
-      showToast('Do\'kon qo\'shildi', 'success');
+      showToast('Do'kon qo'shildi', 'success');
       storeForm.reset();
+      resetLocationState();
       formWrapper?.classList.remove('is-open');
       const { stores: updatedStores } = await fetchAgentStores(context.profile.id);
       renderCards(updatedStores);
@@ -479,7 +765,6 @@ async function initStoresPage(context) {
     }
   });
 }
-
 async function initStatsPage(context) {
   const rangeButtons = document.querySelectorAll('[data-range]');
   const revenueEl = document.getElementById('agent-stats-revenue');
@@ -621,7 +906,7 @@ async function initStatsPage(context) {
 async function main() {
   try {
     if (page !== 'agent-login') {
-      setupAgentShell();
+      initBottomNavigation(page);
       initCollapsibles();
     }
 
@@ -658,3 +943,7 @@ async function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+
+
+
+

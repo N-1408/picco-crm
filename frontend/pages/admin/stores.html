@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Do'konlar | PICCO Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,60 +22,22 @@
       };
     </script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="../../css/style.css" />
     <script src="../../config.js"></script>
   </head>
   <body class="picco-body" data-page="admin-stores">
     <div class="picco-layout">
-      <aside class="picco-sidebar" data-sidebar>
-        <div class="picco-sidebar__header">
-          <button class="picco-sidebar__toggle" type="button" data-sidebar-close aria-label="Orqaga">
-            <span class="material-icons">arrow_back</span>
-          </button>
-          <div class="picco-sidebar__brand">
-            <span class="picco-sidebar__brand-logo">PICCO</span>
-            <span class="picco-sidebar__brand-subtitle">Admin paneli</span>
-          </div>
-        </div>
-        <nav class="picco-sidebar__nav">
-          <a href="./dashboard.html" class="picco-sidebar__link" data-nav-link="admin-dashboard">
-            <span class="material-icons">space_dashboard</span>
-            <span>Dashboard</span>
-          </a>
-          <a href="./products.html" class="picco-sidebar__link" data-nav-link="admin-products">
-            <span class="material-icons">category</span>
-            <span>Mahsulotlar</span>
-          </a>
-          <a href="./stores.html" class="picco-sidebar__link" data-nav-link="admin-stores">
-            <span class="material-icons">store</span>
-            <span>Do'konlar</span>
-          </a>
-          <a href="./agents.html" class="picco-sidebar__link" data-nav-link="admin-agents">
-            <span class="material-icons">groups</span>
-            <span>Agentlar</span>
-          </a>
-          <a href="./stats.html" class="picco-sidebar__link" data-nav-link="admin-stats">
-            <span class="material-icons">bar_chart</span>
-            <span>Statistika</span>
-          </a>
-          <a href="./settings.html" class="picco-sidebar__link" data-nav-link="admin-settings">
-            <span class="material-icons">admin_panel_settings</span>
-            <span>Sozlamalar</span>
-          </a>
-          <button type="button" class="picco-sidebar__link" data-action="logout">
-            <span class="material-icons">logout</span>
-            <span>Chiqish</span>
-          </button>
-        </nav>
-      </aside>
-
       <div class="picco-main-area">
         <header class="picco-topbar">
           <div class="picco-topbar__left">
-            <button class="picco-topbar__toggle" type="button" data-sidebar-toggle aria-label="Menyuni ochish">
-              <span class="material-icons">menu</span>
-            </button>
             <h1 class="picco-topbar__title">Do'konlar boshqaruvi</h1>
+          </div>
+          <div class="picco-topbar__actions">
+            <button type="button" class="picco-chip" data-action="logout">
+              <span class="material-icons">logout</span>
+              Chiqish
+            </button>
           </div>
         </header>
 
@@ -124,12 +86,105 @@
 
             <section class="picco-surface">
               <div class="picco-surface__header">
+                <h2 class="picco-surface__title">Lokatsiyalar xaritasi</h2>
+              </div>
+              <div class="flex flex-col gap-3">
+                <div id="admin-stores-map" class="picco-map-frame"></div>
+                <p id="admin-stores-map-empty" class="picco-map-empty hidden">
+                  Lokatsiya bilan do'konlar hali mavjud emas. Xarita markerlari shu yerda paydo bo'ladi.
+                </p>
+              </div>
+            </section>
+
+            <section class="picco-surface">
+              <div class="picco-surface__header">
                 <h2 class="picco-surface__title">Do'konlar ro'yxati</h2>
               </div>
               <div id="admin-stores-list" class="picco-list"></div>
             </section>
           </div>
         </main>
+
+        <nav class="picco-bottom-nav" data-bottom-nav aria-label="Admin navigatsiya">
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-dashboard"
+            data-icon="space_dashboard"
+            data-href="./dashboard.html"
+            aria-label="Dashboard"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>space_dashboard</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Dashboard</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-products"
+            data-icon="category"
+            data-href="./products.html"
+            aria-label="Mahsulotlar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>category</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Mahsulotlar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-stores"
+            data-icon="store"
+            data-href="./stores.html"
+            aria-label="Do'konlar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>store</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Do'konlar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-agents"
+            data-icon="groups"
+            data-href="./agents.html"
+            aria-label="Agentlar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>groups</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Agentlar</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-stats"
+            data-icon="bar_chart"
+            data-href="./stats.html"
+            aria-label="Statistika"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>bar_chart</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Statistika</span>
+          </button>
+          <button
+            type="button"
+            class="picco-bottom-nav__item"
+            data-nav-link="admin-settings"
+            data-icon="admin_panel_settings"
+            data-href="./settings.html"
+            aria-label="Sozlamalar"
+          >
+            <span class="picco-bottom-nav__icon-wrapper">
+              <span class="material-icons-outlined picco-bottom-nav__item-icon" data-icon>admin_panel_settings</span>
+            </span>
+            <span class="picco-bottom-nav__item-label">Sozlamalar</span>
+          </button>
+        </nav>
 
         <footer class="picco-footer">&copy; PICCO 2025</footer>
       </div>

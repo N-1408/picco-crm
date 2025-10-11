@@ -27,3 +27,50 @@ export function showToast(message, type = 'success') {
 export function renderEmptyState(container, message) {
   container.innerHTML = `<div class="picco-empty">${message}</div>`;
 }
+
+export function initBottomNavigation(currentPage) {
+  const nav = document.querySelector('[data-bottom-nav]');
+  if (!nav) return;
+
+  const items = Array.from(nav.querySelectorAll('[data-nav-link]'));
+
+  const applyState = (element, isActive) => {
+    element.classList.toggle('is-active', isActive);
+    if (isActive) {
+      element.setAttribute('aria-current', 'page');
+    } else {
+      element.removeAttribute('aria-current');
+    }
+
+    const iconSpan = element.querySelector('[data-icon]');
+    if (iconSpan) {
+      iconSpan.classList.remove('material-icons', 'material-icons-outlined');
+      iconSpan.classList.add(isActive ? 'material-icons' : 'material-icons-outlined', 'picco-bottom-nav__item-icon');
+      const iconName = element.dataset.icon ?? iconSpan.textContent?.trim();
+      if (iconName) {
+        iconSpan.textContent = iconName;
+      }
+    }
+  };
+
+  items.forEach((item) => {
+    const iconSpan = item.querySelector('[data-icon]');
+    if (iconSpan) {
+      const iconName = item.dataset.icon ?? iconSpan.textContent?.trim();
+      if (iconName) {
+        iconSpan.textContent = iconName;
+      }
+    }
+
+    applyState(item, item.dataset.navLink === currentPage);
+
+    const href = item.dataset.href;
+    if (href && item.dataset.bound !== 'true') {
+      item.addEventListener('click', () => {
+        if (item.dataset.navLink === currentPage) return;
+        window.location.href = href;
+      });
+      item.dataset.bound = 'true';
+    }
+  });
+}

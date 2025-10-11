@@ -1,8 +1,7 @@
-const DEFAULT_CONFIG = {
+﻿const DEFAULT_CONFIG = {
   apiBaseUrl: 'http://localhost:4000/api',
   agentPanelUrl: '/pages/agent/dashboard.html',
-  adminPanelUrl: '/pages/admin/login.html'
-};
+  adminPanelUrl: '/pages/admin/login.html',};
 
 function resolveApiBaseUrl() {
   try {
