@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './styles/theme.css';
 
-const rootElement = document.getElementById('app');
+const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  throw new Error('Root element #app not found');
+  throw new Error('Root element #root not found');
 }
 
 const root = ReactDOM.createRoot(rootElement);
