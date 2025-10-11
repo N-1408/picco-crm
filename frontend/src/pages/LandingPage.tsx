@@ -63,10 +63,10 @@ export default function LandingPage({ onLoginRequest }: LandingPageProps) {
         ) : (
           <div className="w-full max-w-md text-center">
             <h1 className="text-2xl font-semibold mb-3">
-              PICCO CRM tizimiga xush kelibsiz!
+              PICCO Agent Paneliga xush kelibsiz!
             </h1>
             <p className="text-gray-600 mb-8 leading-relaxed">
-              Bizning xizmatlarimiz orqali biznesingizni yangi bosqichga olib chiqing.
+              Agent sifatida buyurtmalarni, do'konlarni va natijalarni boshqarish uchun tizimga kiring.
             </p>
             <button
               onClick={handleStartWithTelegram}
