@@ -1,22 +1,20 @@
-import React, { useEffect, useRef } from 'react';
-import Chart from 'chart.js/auto';
-import { format } from 'date-fns';
-import type { ChartConfiguration } from 'chart.js';
+import { useEffect, useRef } from 'react';
+import { Chart } from 'chart.js';
 
-type ChartData = {
+interface CustomChartData {
   labels: string[];
-  datasets: {
+  datasets: Array<{
     label: string;
     data: number[];
     backgroundColor?: string;
     borderColor?: string;
     borderWidth?: number;
-  }[];
-};
+  }>;
+}
 
 type ChartProps = {
   type: 'line' | 'bar' | 'pie' | 'doughnut';
-  data: ChartData;
+  data: CustomChartData;
   height?: number;
   className?: string;
 };
@@ -50,7 +48,7 @@ export default function ChartComponent({
       chartInstance.current.destroy();
     }
 
-    const config: ChartConfiguration = {
+    const config: any = {
       type,
       data: {
         labels: data.labels,
@@ -98,6 +96,7 @@ export default function ChartComponent({
         },
         scales: type === 'pie' || type === 'doughnut' ? undefined : {
           x: {
+            display: true,
             grid: {
               display: false
             },
@@ -108,6 +107,7 @@ export default function ChartComponent({
             }
           },
           y: {
+            display: true,
             beginAtZero: true,
             grid: {
               color: 'rgba(0, 0, 0, 0.05)'
@@ -116,7 +116,7 @@ export default function ChartComponent({
               font: {
                 size: 12
               },
-              callback: (value) => {
+              callback: (value: number | string): string | number => {
                 if (typeof value === 'number') {
                   return value >= 1000 ? `${value / 1000}k` : value;
                 }

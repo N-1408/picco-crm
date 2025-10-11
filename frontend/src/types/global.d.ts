@@ -1,6 +1,50 @@
 /// <reference types="react" />
 /// <reference types="vite/client" />
 
+interface TelegramWebApp {
+  ready: () => void;
+  expand: () => void;
+  close: () => void;
+  MainButton: {
+    text: string;
+    color: string;
+    textColor: string;
+    isVisible: boolean;
+    isActive: boolean;
+    isProgressVisible: boolean;
+    setText: (text: string) => void;
+    onClick: (callback: () => void) => void;
+    show: () => void;
+    hide: () => void;
+    enable: () => void;
+    disable: () => void;
+    showProgress: (leaveActive: boolean) => void;
+    hideProgress: () => void;
+  };
+  BackButton: {
+    isVisible: boolean;
+    onClick: (callback: () => void) => void;
+    show: () => void;
+    hide: () => void;
+  };
+  HapticFeedback: {
+    impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
+    notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
+    selectionChanged: () => void;
+  };
+  enableClosingConfirmation: () => void;
+  disableClosingConfirmation: () => void;
+  setHeaderColor: (color: string) => void;
+  setBackgroundColor: (color: string) => void;
+  openLink: (url: string) => void;
+}
+
+interface Window {
+  Telegram?: {
+    WebApp: TelegramWebApp;
+  };
+}
+
 declare module '*.svg' {
   const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
   export default content;

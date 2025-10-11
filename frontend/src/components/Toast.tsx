@@ -1,15 +1,15 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import clsx from 'clsx';
-import { useApp } from '../context/AppContext';
+import { useApp, type Toast, type AlertVariant } from '../context/AppContext';
 
-const icons = {
+const icons: Record<AlertVariant, string> = {
   success: 'task_alt',
   error: 'error',
   warning: 'warning',
   info: 'info'
 };
 
-const colors = {
+const colors: Record<AlertVariant, string> = {
   success: 'bg-[#34C759]/10 text-[#248A3D] border-[#34C759]/20',
   error: 'bg-[#FF3B30]/10 text-[#D70015] border-[#FF3B30]/20',
   warning: 'bg-[#FF9500]/10 text-[#C93400] border-[#FF9500]/20',
@@ -21,7 +21,7 @@ export default function ToastContainer() {
 
   useEffect(() => {
     if (!toasts.length) return undefined;
-    const timers = toasts.map((toast) =>
+    const timers = toasts.map((toast: Toast) =>
       setTimeout(() => dismissToast(toast.id), toast.duration ?? 3000)
     );
     return () => timers.forEach(clearTimeout);
@@ -29,7 +29,7 @@ export default function ToastContainer() {
 
   return (
     <div className="fixed top-safe inset-x-0 z-50 pointer-events-none p-4 flex flex-col items-center gap-2">
-      {toasts.map((toast) => (
+      {toasts?.map((toast: Toast) => (
         <div
           key={toast.id}
           className={clsx(

@@ -1,11 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 
+/**
+ * @typedef {Object} NavItem
+ * @property {string} id
+ * @property {string} icon
+ * @property {string} label
+ * @property {string} path
+ */
+
+/**
+ * @param {{ items?: NavItem[] }} props
+ */
 export default function BottomNav({ items = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [labelKey, setLabelKey] = useState(null);
+  const [labelKey, setLabelKey] = useState(/** @type {string|null} */ (null));
+  /** @type {React.MutableRefObject<number|undefined>} */
   const timerRef = useRef();
 
   useEffect(() => {
@@ -14,14 +26,14 @@ export default function BottomNav({ items = [] }) {
 
   useEffect(() => {
     // Expand Telegram WebApp on mount
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram?.WebApp?.expand) {
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.requestFullscreen();
     }
   }, []);
 
   if (!items.length) return null;
 
+  /** @type {(item: NavItem) => void} */
   const handleClick = (item) => {
     if (item.path === location.pathname) {
       setLabelKey(item.id);
