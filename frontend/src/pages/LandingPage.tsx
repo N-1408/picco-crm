@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
+import { useApp } from '../context/AppContext.tsx';
 
 interface LandingPageProps {
   onLoginRequest: (role?: 'agent' | 'admin') => void;
@@ -8,81 +8,69 @@ interface LandingPageProps {
 
 export default function LandingPage({ onLoginRequest }: LandingPageProps) {
   const navigate = useNavigate();
-  const { user } = useAppContext();
+  const { user } = useApp();
 
-  React.useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.enableClosingConfirmation();
-    }
+  useEffect(() => {
+    if (!window.Telegram?.WebApp) return;
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    window.Telegram.WebApp.enableClosingConfirmation();
   }, []);
 
-  const handleAgentClick = () => {
-    navigate('/agent');
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    }
-  };
-
-  const handleAdminClick = () => {
-    navigate('/admin');
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    }
-  };
-
-  const handleStartWithTelegram = () => {
-    const botUsername = 'picco_agent_bot';
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}`);
+  const handleOpenPanel = (role: 'agent' | 'admin') => {
+    if (user) {
+      navigate(role === 'admin' ? '/admin' : '/agent', { replace: false });
     } else {
-      window.open(`https://t.me/${botUsername}`, '_blank');
+      onLoginRequest(role);
+    }
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+  };
+
+  const handleOpenBot = () => {
+    const url = 'https://t.me/picco_agent_bot';
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(url);
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-gray-50 px-4 py-8">
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
-        <img src="/logo.svg" alt="PICCO" className="w-24 h-24 mb-8 animate-float" />
-        {user ? (
-          <div className="w-full max-w-md space-y-4">
-            <button
-              onClick={handleAdminClick}
-              className="w-full h-12 rounded-xl font-medium bg-[#007AFF] text-white shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-transform"
-            >
-              Admin Panelga kirish
+    <main className="landing-page">
+      <section className="landing-hero">
+        <div className="hero-card">
+          <div className="logo-circle">
+            <span className="material-symbols-rounded">sparkles</span>
+          </div>
+          <h1>Soft power for smart sales.</h1>
+          <p>
+            PICCO agentlari va administratorlari uchun yaratilgan sokin boshqaruv maydoni —
+            buyurtmalar, mijozlar va xaritalar bir joyda, Apple uslubidagi uyg'unlikda.
+          </p>
+          <div className="hero-illustration" aria-hidden="true">
+            <div className="orbit">
+              <span className="material-symbols-rounded">sell</span>
+              <span className="material-symbols-rounded">route</span>
+              <span className="material-symbols-rounded">insights</span>
+            </div>
+            <div className="glow" />
+          </div>
+          <div className="hero-actions">
+            <button type="button" className="btn-primary" onClick={() => handleOpenPanel('agent')}>
+              Agent paneli
             </button>
-            <button
-              onClick={handleAgentClick}
-              className="w-full h-12 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 transition-colors"
-            >
-              Agent Panelga kirish
+            <button type="button" className="btn-secondary" onClick={() => handleOpenPanel('admin')}>
+              Admin paneli
+            </button>
+            <button type="button" className="btn-link" onClick={handleOpenBot}>
+              Telegram orqali ro'yxatdan o'tish
+              <span className="material-symbols-rounded">north_east</span>
             </button>
           </div>
-        ) : (
-          <div className="w-full max-w-md text-center">
-            <h1 className="text-2xl font-semibold mb-3">
-              PICCO Agent Paneliga xush kelibsiz!
-            </h1>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Agent sifatida buyurtmalarni, do'konlarni va natijalarni boshqarish uchun tizimga kiring.
-            </p>
-            <button
-              onClick={handleStartWithTelegram}
-              className="w-full h-12 rounded-xl font-medium bg-[#007AFF] text-white shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-            >
-              <span className="material-symbols-rounded">telegram</span>
-              Start with Telegram
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="mt-auto text-center animate-pulse-slow">
-        <p className="text-gray-600 italic px-6">
-          🚀 PICCO bilan natija — bu tasodif emas. Har bir sotuv, har bir qadam — mukammallikka yo'l.
-        </p>
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }

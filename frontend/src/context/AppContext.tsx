@@ -202,11 +202,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         user: (action as any).user
       };
-    case 'SET_USER':
-      return {
-        ...state,
-        user: (action as any).user
-      };
     default:
       return state;
   }

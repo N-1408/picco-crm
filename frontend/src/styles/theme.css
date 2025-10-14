@@ -58,6 +58,16 @@ body {
   flex-direction: column;
 }
 
+.app-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1.2rem
+    calc(5rem + env(safe-area-inset-bottom, 0px));
+  gap: 1.25rem;
+}
+
 /* Animations */
 @keyframes float {
   0% {
@@ -97,6 +107,15 @@ body {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -143,17 +162,16 @@ body {
 
 .bottom-nav {
   position: fixed;
-  bottom: max(1rem, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  width: 90%;
-  max-width: 24rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.75rem;
+  bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  width: min(92%, 480px);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(18px);
+  border-radius: 26px;
+  box-shadow: 0 25px 60px -35px rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.65rem 0.75rem;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -291,24 +309,6 @@ body {
   backdrop-filter: blur(22px);
   border: 1px solid var(--border);
   box-shadow: 0 25px 50px -40px rgba(10, 23, 47, 0.45);
-}
-
-.bottom-nav {
-  position: fixed;
-  left: 50%;
-  bottom: 1.5rem;
-  transform: translateX(-50%);
-  width: min(90%, 480px);
-  display: flex;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.45rem;
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: 26px;
-  backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 15px 45px -30px rgba(7, 39, 79, 0.45);
-  z-index: 10;
 }
 
 .nav-btn {
@@ -838,10 +838,11 @@ tbody tr + tr {
 
 .landing-page {
   position: relative;
-  min-height: calc(100dvh - 6rem);
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-top: calc(env(safe-area-inset-top, 0px) * 0.5);
 }
 
 .landing-hero {
@@ -882,6 +883,61 @@ tbody tr + tr {
 .hero-card p {
   margin: 1rem 0 2rem;
   color: var(--text-muted);
+}
+
+.hero-illustration {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-illustration .orbit {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 122, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: orbit-spin 18s linear infinite;
+}
+
+.hero-illustration .orbit span {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 25px -18px rgba(15, 23, 42, 0.6);
+  color: var(--primary);
+}
+
+.hero-illustration .orbit span:nth-child(1) {
+  top: -12px;
+}
+
+.hero-illustration .orbit span:nth-child(2) {
+  right: -12px;
+}
+
+.hero-illustration .orbit span:nth-child(3) {
+  bottom: -12px;
+}
+
+.hero-illustration .glow {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(0, 122, 255, 0.25), transparent 70%);
+  filter: blur(0.4px);
 }
 
 .hero-actions {
@@ -983,7 +1039,7 @@ tbody tr + tr {
 
 .toast-container {
   position: fixed;
-  top: 1.5rem;
+  top: calc(1.5rem + env(safe-area-inset-top, 0px));
   right: 1.5rem;
   display: grid;
   gap: 0.8rem;
@@ -1194,7 +1250,8 @@ tbody tr + tr {
 
 @media (max-width: 768px) {
   .app-root {
-    padding: 1rem 1rem 5.5rem;
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem
+      calc(5.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .app-header {
@@ -1227,5 +1284,6 @@ tbody tr + tr {
   .toast-container {
     right: 1rem;
     left: 1rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
   }
 }

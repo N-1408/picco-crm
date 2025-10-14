@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext.tsx';
 import useTelegram from './hooks/useTelegram.js';
-import LandingPage from './pages/LandingPage.jsx';
+import LandingPage from './pages/LandingPage';
 import AgentDashboard from './pages/AgentDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import MapPage from './pages/MapPage.jsx';
