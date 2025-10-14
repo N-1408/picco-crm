@@ -12,32 +12,36 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const bot = new TelegramBot(token, { polling: false });
 const sessions = new Map();
 
-function joinUrl(base, path) {
-  if (!path) return base;
-  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${normalizedBase}${normalizedPath}`;
+function sanitizePath(path) {
+  if (!path) return '';
+  return path.toString().replace(/^[/#]+/, '');
 }
 
 function buildWebAppUrl(path, telegramId) {
-  const base = joinUrl(webAppUrl, path);
+  const normalizedBase = webAppUrl.endsWith('/') ? webAppUrl : `${webAppUrl}/`;
+  const cleanPath = sanitizePath(path);
   try {
-    const url = new URL(base);
+    const url = new URL(normalizedBase);
     if (telegramId) {
       url.searchParams.set('tg_id', telegramId);
     }
+    url.hash = cleanPath ? `/${cleanPath}` : '/';
     return url.toString();
   } catch (error) {
-    return base;
+    const baseWithoutSlash = normalizedBase.replace(/\/$/, '');
+    const separator = baseWithoutSlash.includes('?') ? '&' : '?';
+    const query = telegramId ? `${separator}tg_id=${telegramId}` : '';
+    const hash = cleanPath ? `#/${cleanPath}` : '#/';
+    return `${baseWithoutSlash}${query}${hash}`;
   }
 }
 
 function getWebAppKeyboard(telegramId) {
   return {
-    inline_keyboard: [[
-      { text: 'Agent paneli', web_app: { url: buildWebAppUrl(agentWebAppPath, telegramId) } },
-      { text: 'Admin paneli', web_app: { url: buildWebAppUrl(adminWebAppPath, telegramId) } }
-    ]]
+    inline_keyboard: [
+      [{ text: 'Agent paneli', web_app: { url: buildWebAppUrl(agentWebAppPath, telegramId) } }],
+      [{ text: 'Admin paneli', web_app: { url: buildWebAppUrl(adminWebAppPath, telegramId) } }]
+    ]
   };
 }
 

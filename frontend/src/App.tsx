@@ -1,6 +1,6 @@
 import React from 'react';
 import { type ReactNode } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext.tsx';
 import useTelegram from './hooks/useTelegram.js';
 import LandingPage from './pages/LandingPage';
@@ -210,9 +210,9 @@ function MainApp() {
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <HashRouter>
         <MainApp />
-      </BrowserRouter>
+      </HashRouter>
     </AppProvider>
   );
 }
