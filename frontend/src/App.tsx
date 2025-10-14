@@ -1,6 +1,6 @@
 import React, { type ReactNode } from 'react';
 import {
-  HashRouter,
+  BrowserRouter,
   Navigate,
   Route,
   Routes,
@@ -212,9 +212,9 @@ function MainApp() {
 export default function App() {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <MainApp />
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 }

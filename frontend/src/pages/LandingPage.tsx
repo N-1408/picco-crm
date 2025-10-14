@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext.tsx';
 
 export default function LandingPage() {
@@ -9,15 +9,20 @@ export default function LandingPage() {
   const isRegistered = Boolean(user);
 
   useEffect(() => {
-    if (!window.Telegram?.WebApp) return;
-    const tg = window.Telegram.WebApp;
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
     tg.ready();
     tg.expand();
     tg.enableClosingConfirmation();
   }, []);
 
   const vibrate = () => {
-    const feedback = window.Telegram?.WebApp?.HapticFeedback;
+    const feedback = window.Telegram?.WebApp?.HapticFeedback as
+      | {
+          impactOccurred?: (style: 'light' | 'medium' | 'heavy') => void;
+          selectionChanged?: () => void;
+        }
+      | undefined;
     if (feedback?.impactOccurred) {
       feedback.impactOccurred('light');
     } else if (feedback?.selectionChanged) {
@@ -25,7 +30,7 @@ export default function LandingPage() {
     }
   };
 
-  const handleOpenBot = () => {
+  const openBot = () => {
     vibrate();
     const url = 'https://t.me/picco_agent_bot';
     if (window.Telegram?.WebApp) {
@@ -35,17 +40,16 @@ export default function LandingPage() {
     }
   };
 
-  const handleOpenAgent = () => {
+  const goAgent = () => {
     vibrate();
     navigate('/agent', { replace: false });
   };
 
-  const handleOpenAdmin = () => {
+  const goAdmin = () => {
     vibrate();
     navigate('/admin', { replace: false });
   };
 
-  const showRegisterNotice = !loading && !isRegistered;
   const cameFromRestricted = location.search.includes('needsRegistration');
 
   return (
@@ -61,6 +65,7 @@ export default function LandingPage() {
             <div className="pulse-ring pulse-ring--inner" />
             <span className="material-symbols-rounded">hub</span>
           </div>
+
           {loading ? (
             <div className="hero-loader">
               <div className="loader-dot" aria-hidden="true" />
@@ -68,13 +73,13 @@ export default function LandingPage() {
             </div>
           ) : isRegistered ? (
             <div className="hero-actions hero-actions--stacked">
-              <button type="button" className="btn-primary btn-large" onClick={handleOpenAgent}>
+              <button type="button" className="btn-primary btn-large" onClick={goAgent}>
                 🧑‍💼 Agent paneli
               </button>
-              <button type="button" className="btn-secondary btn-large" onClick={handleOpenAdmin}>
+              <button type="button" className="btn-secondary btn-large" onClick={goAdmin}>
                 👑 Admin paneli
               </button>
-              <button type="button" className="btn-link" onClick={handleOpenBot}>
+              <button type="button" className="btn-link" onClick={openBot}>
                 Telegram orqali ro&apos;yxatdan o&apos;tish
                 <span className="material-symbols-rounded">arrow_outward</span>
               </button>
@@ -83,11 +88,11 @@ export default function LandingPage() {
             <div className="hero-message">
               <p>
                 {cameFromRestricted
-                  ? 'Avval ro\'yxatdan o\'tishingiz kerak. PICCO agent paneli faqat tasdiqlangan foydalanuvchilar uchun.'
-                  : 'Iltimos, avval PICCO bot orqali ro\'yxatdan o\'ting. Tasdiqlangandan so\'ng panel avtomatik ochiladi.'}
+                  ? "Avval ro'yxatdan o'tishingiz kerak. PICCO agent paneli faqat tasdiqlangan foydalanuvchilar uchun."
+                  : "Iltimos, avval PICCO bot orqali ro'yxatdan o'ting. Tasdiqlangandan so'ng panel avtomatik ochiladi."}
               </p>
               {authError ? <span className="hero-error">{authError}</span> : null}
-              <button type="button" className="btn-primary btn-large" onClick={handleOpenBot}>
+              <button type="button" className="btn-primary btn-large" onClick={openBot}>
                 @picco_agent_bot bilan ro&apos;yxatdan o&apos;tish
               </button>
             </div>

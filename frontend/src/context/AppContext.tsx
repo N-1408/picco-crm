@@ -79,8 +79,6 @@ interface AppContextActions {
   addStore: (store: Omit<Store, 'id'>) => void;
   updateStore: (id: string, store: Partial<Store>) => void;
   deleteStore: (id: string) => void;
-  setUser: (user: Agent | null) => void;
-  setLoading: (loading: boolean) => void;
   addAgent: (agent: Omit<Agent, 'id'>) => void;
   updateAgent: (id: string, agent: Partial<Agent>) => void;
   deleteAgent: (id: string) => void;
@@ -115,7 +113,7 @@ const initialState: AppState = {
   products: [],
   orders: [],
   user: null,
-  loading: false,
+  loading: true,
   telegramId: null,
   authError: null,
   adminToken: null,
@@ -266,7 +264,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resolveTelegramId = useCallback((): string | null => {
     if (typeof window === 'undefined') return null;
-    const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const tgWebApp = window.Telegram?.WebApp as unknown as {
+      initDataUnsafe?: { user?: { id?: number | string } };
+    } | undefined;
+    const tgUserId = tgWebApp?.initDataUnsafe?.user?.id;
     if (tgUserId) return String(tgUserId);
 
     const searchParams = new URLSearchParams(window.location.search);
