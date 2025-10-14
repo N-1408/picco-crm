@@ -1035,7 +1035,7 @@ tbody tr + tr {
 .hero-message {
   display: grid;
   gap: 1rem;
-  color: var(--text-muted);
+  color: var(--text);
   font-size: 0.95rem;
 }
 
