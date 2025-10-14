@@ -1,4 +1,12 @@
-import { createContext, useContext, useCallback, useReducer, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useReducer,
+  useMemo,
+  useEffect,
+  type ReactNode
+} from 'react';
 import { addDays } from 'date-fns';
 
 type Role = 'agent' | 'admin';
@@ -55,8 +63,12 @@ interface AppState {
   agents: Agent[];
   products: Product[];
   orders: Order[];
-  user?: Agent | null;
-  loading?: boolean;
+  user: Agent | null;
+  loading: boolean;
+  telegramId: string | null;
+  authError: string | null;
+  adminToken: string | null;
+  adminLoading: boolean;
   period: [Date, Date];
 }
 
@@ -78,9 +90,16 @@ interface AppContextActions {
   addOrder: (order: Omit<Order, 'id'>) => void;
   updateOrder: (id: string, order: Partial<Order>) => void;
   setPeriod: (period: [Date, Date]) => void;
+  setLoading: (loading: boolean) => void;
+  setUser: (user: Agent | null) => void;
+  logout: () => void;
+  loginAdmin: (credentials: { username: string; password: string }) => Promise<string>;
+  logoutAdmin: () => void;
 }
 
-export interface AppContextValue extends AppState, AppContextActions {}
+export interface AppContextValue extends AppState, AppContextActions {
+  state: AppState;
+}
 
 const AppContext = createContext<AppContextValue | null>(null);
 
@@ -97,6 +116,10 @@ const initialState: AppState = {
   orders: [],
   user: null,
   loading: false,
+  telegramId: null,
+  authError: null,
+  adminToken: null,
+  adminLoading: false,
   period: defaultPeriod
 };
 
@@ -115,7 +138,12 @@ type AppAction =
   | { type: 'ADD_ORDER'; order: Order }
   | { type: 'UPDATE_ORDER'; id: string; order: Partial<Order> }
   | { type: 'SET_PERIOD'; period: [Date, Date] }
-  | { type: 'SET_USER'; user: Agent | null };
+  | { type: 'SET_USER'; user: Agent | null }
+  | { type: 'SET_LOADING'; loading: boolean }
+  | { type: 'SET_TELEGRAM_ID'; telegramId: string | null }
+  | { type: 'SET_AUTH_ERROR'; error: string | null }
+  | { type: 'SET_ADMIN_TOKEN'; token: string | null }
+  | { type: 'SET_ADMIN_LOADING'; loading: boolean };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -200,7 +228,32 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_USER':
       return {
         ...state,
-        user: (action as any).user
+        user: action.user
+      };
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loading: action.loading
+      };
+    case 'SET_TELEGRAM_ID':
+      return {
+        ...state,
+        telegramId: action.telegramId
+      };
+    case 'SET_AUTH_ERROR':
+      return {
+        ...state,
+        authError: action.error
+      };
+    case 'SET_ADMIN_TOKEN':
+      return {
+        ...state,
+        adminToken: action.token
+      };
+    case 'SET_ADMIN_LOADING':
+      return {
+        ...state,
+        adminLoading: action.loading
       };
     default:
       return state;
@@ -209,6 +262,112 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
+
+  const resolveTelegramId = useCallback((): string | null => {
+    if (typeof window === 'undefined') return null;
+    const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (tgUserId) return String(tgUserId);
+
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('tg_id')) {
+      const value = searchParams.get('tg_id');
+      searchParams.delete('tg_id');
+      const query = searchParams.toString();
+      const newUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+      window.history.replaceState({}, '', newUrl);
+      return value;
+    }
+
+    const stored = window.localStorage.getItem('picco.telegramId');
+    return stored ?? null;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedToken = window.localStorage.getItem('picco.adminToken');
+    if (storedToken) {
+      dispatch({ type: 'SET_ADMIN_TOKEN', token: storedToken });
+    }
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const bootstrapAgent = async () => {
+      const telegramId = resolveTelegramId();
+      if (!isMounted) return;
+      dispatch({ type: 'SET_TELEGRAM_ID', telegramId });
+
+      if (!telegramId || !apiBaseUrl) {
+        dispatch({ type: 'SET_USER', user: null });
+        dispatch({ type: 'SET_LOADING', loading: false });
+        return;
+      }
+
+      dispatch({ type: 'SET_LOADING', loading: true });
+      dispatch({ type: 'SET_AUTH_ERROR', error: null });
+
+      try {
+        const response = await fetch(`${apiBaseUrl}/auth/agent/${telegramId}`, {
+          signal: controller.signal
+        });
+
+        if (!isMounted) return;
+
+        if (response.status === 404) {
+          dispatch({ type: 'SET_USER', user: null });
+          window.localStorage.removeItem('picco.telegramId');
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Agent ma\'lumotini olishda xatolik');
+        }
+
+        const payload: { user?: Partial<Agent> & { role?: Role; phone?: string } } = await response.json();
+        if (!payload.user) {
+          dispatch({ type: 'SET_USER', user: null });
+          window.localStorage.removeItem('picco.telegramId');
+          return;
+        }
+
+        const mappedUser: Agent = {
+          id: telegramId,
+          name: payload.user.name ?? 'PICCO Agent',
+          role: 'agent',
+          region: 'Toshkent',
+          phone: payload.user.phone ?? '',
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+            payload.user.name ?? 'PICCO Agent'
+          )}`
+        };
+
+        dispatch({ type: 'SET_USER', user: mappedUser });
+        window.localStorage.setItem('picco.telegramId', telegramId);
+      } catch (error) {
+        if (!isMounted || controller.signal.aborted) return;
+        // eslint-disable-next-line no-console
+        console.error('Agent verification error:', error);
+        dispatch({
+          type: 'SET_AUTH_ERROR',
+          error: error instanceof Error ? error.message : 'Agentni tekshirishda xatolik yuz berdi.'
+        });
+        dispatch({ type: 'SET_USER', user: null });
+      } finally {
+        if (isMounted) {
+          dispatch({ type: 'SET_LOADING', loading: false });
+        }
+      }
+    };
+
+    bootstrapAgent();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [apiBaseUrl, resolveTelegramId]);
 
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substring(7);
@@ -281,12 +440,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLoading = useCallback((loading: boolean) => {
-    // loading is not handled by reducer; no-op for now
-    // Provide this function for compatibility
-    void loading;
+    dispatch({ type: 'SET_LOADING', loading });
+  }, []);
+
+  const logout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('picco.telegramId');
+    }
+    dispatch({ type: 'SET_USER', user: null });
+  }, []);
+
+  const loginAdmin = useCallback(
+    async ({ username, password }: { username: string; password: string }) => {
+      if (!apiBaseUrl) {
+        throw new Error('API manzili topilmadi');
+      }
+
+      dispatch({ type: 'SET_ADMIN_LOADING', loading: true });
+      try {
+        const response = await fetch(`${apiBaseUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error ?? 'Kirish ma\'lumotlari noto\'g\'ri.');
+        }
+
+        const { token } = await response.json();
+        if (!token) {
+          throw new Error('Serverdan token olinmadi.');
+        }
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('picco.adminToken', token);
+        }
+        dispatch({ type: 'SET_ADMIN_TOKEN', token });
+        return token;
+      } finally {
+        dispatch({ type: 'SET_ADMIN_LOADING', loading: false });
+      }
+    },
+    [apiBaseUrl]
+  );
+
+  const logoutAdmin = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('picco.adminToken');
+    }
+    dispatch({ type: 'SET_ADMIN_TOKEN', token: null });
   }, []);
 
   const value = useMemo(() => ({
+    state,
     ...state,
     addToast,
     dismissToast,
@@ -304,10 +513,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPeriod,
     showToast,
     setUser,
-    setLoading
-  }), [state, addToast, dismissToast, addStore, updateStore, deleteStore,
-      addAgent, updateAgent, deleteAgent, addProduct, updateProduct, deleteProduct,
-      addOrder, updateOrder, setPeriod]);
+    setLoading,
+    logout,
+    loginAdmin,
+    logoutAdmin
+  }), [
+    state,
+    addToast,
+    dismissToast,
+    addStore,
+    updateStore,
+    deleteStore,
+    addAgent,
+    updateAgent,
+    deleteAgent,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    addOrder,
+    updateOrder,
+    setPeriod,
+    showToast,
+    setUser,
+    setLoading,
+    logout,
+    loginAdmin,
+    logoutAdmin
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

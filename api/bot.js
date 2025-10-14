@@ -25,14 +25,14 @@ function buildWebAppUrl(path, telegramId) {
     if (telegramId) {
       url.searchParams.set('tg_id', telegramId);
     }
-    url.hash = cleanPath ? `/${cleanPath}` : '/';
+    url.pathname = cleanPath ? `/${cleanPath}` : '/';
     return url.toString();
   } catch (error) {
     const baseWithoutSlash = normalizedBase.replace(/\/$/, '');
     const separator = baseWithoutSlash.includes('?') ? '&' : '?';
     const query = telegramId ? `${separator}tg_id=${telegramId}` : '';
-    const hash = cleanPath ? `#/${cleanPath}` : '#/';
-    return `${baseWithoutSlash}${query}${hash}`;
+    const pathSuffix = cleanPath ? `/${cleanPath}` : '/';
+    return `${baseWithoutSlash}${pathSuffix}${query}`;
   }
 }
 

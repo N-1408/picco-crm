@@ -1,6 +1,12 @@
-import React from 'react';
-import { type ReactNode } from 'react';
-import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import React, { type ReactNode } from 'react';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate
+} from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext.tsx';
 import useTelegram from './hooks/useTelegram.js';
 import LandingPage from './pages/LandingPage';
@@ -9,28 +15,56 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import MapPage from './pages/MapPage.jsx';
 import StatsPage from './pages/StatsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import AdminLoginPage from './pages/AdminLogin';
 import BottomNav from './components/BottomNav.jsx';
 import Header from './components/Header.jsx';
 import ToastContainer from './components/Toast.jsx';
-import LoginModal from './components/LoginModal.jsx';
 
-interface ProtectedRouteProps {
+interface RouteGuardProps {
   children: ReactNode;
-  roles?: ('agent' | 'admin')[];
 }
 
-function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
-  const { user } = useAppContext();
+function AgentGuard({ children }: RouteGuardProps) {
+  const { user, loading } = useAppContext();
+
+  if (loading) {
+    return (
+      <main className="page">
+        <div className="hero-loader">
+          <div className="loader-dot" aria-hidden="true" />
+          <span>Ma&apos;lumotlar yuklanmoqda...</span>
+        </div>
+      </main>
+    );
+  }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/?needsRegistration=1" replace />;
   }
 
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/agent'} replace />;
+  return <>{children}</>;
+}
+
+function AdminGuard({ children }: RouteGuardProps) {
+  const { adminToken, adminLoading } = useAppContext();
+  const location = useLocation();
+
+  if (adminLoading) {
+    return (
+      <main className="page">
+        <div className="hero-loader">
+          <div className="loader-dot" aria-hidden="true" />
+          <span>Admin paneliga kirish tekshirilmoqda...</span>
+        </div>
+      </main>
+    );
   }
 
-  return children;
+  if (!adminToken) {
+    return <AdminLoginPage redirectTo={location.pathname} />;
+  }
+
+  return <>{children}</>;
 }
 
 function MainApp() {
@@ -38,19 +72,10 @@ function MainApp() {
   const { user } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
-  const [loginModalOpen, setLoginModalOpen] = React.useState(false);
-  const [requestedRole, setRequestedRole] = React.useState<'agent' | 'admin'>('agent');
 
-  const showBack = React.useMemo(() => {
-    if (location.pathname === '/' || location.pathname === `/${user?.role ?? ''}`) {
-      return false;
-    }
-    if (!user) return false;
-    return location.pathname !== (user.role === 'admin' ? '/admin' : '/agent');
-  }, [location.pathname, user]);
+  const showBack = location.pathname !== '/';
 
   const title = React.useMemo(() => {
-    if (!user) return 'PICCO CRM';
     if (location.pathname.startsWith('/agent')) {
       if (location.pathname.includes('orders')) return 'Buyurtmalar';
       if (location.pathname.includes('stores')) return 'Do\'konlar';
@@ -66,18 +91,10 @@ function MainApp() {
     if (location.pathname.startsWith('/stats')) return 'Statistika';
     if (location.pathname.startsWith('/profile')) return 'Profil';
     return 'PICCO CRM';
-  }, [location.pathname, user]);
+  }, [location.pathname]);
 
   const navItems = React.useMemo(() => {
     if (!user) return [];
-    if (user.role === 'admin') {
-      return [
-        { id: 'admin-home', label: 'Asosiy', icon: 'dashboard', path: '/admin' },
-        { id: 'admin-products', label: 'Mahsulotlar', icon: 'inventory_2', path: '/admin/products' },
-        { id: 'admin-map', label: 'Xarita', icon: 'map', path: '/map' },
-        { id: 'admin-agents', label: 'Agentlar', icon: 'group', path: '/admin/agents' }
-      ];
-    }
     return [
       { id: 'agent-home', label: 'Bosh sahifa', icon: 'home', path: '/agent' },
       { id: 'agent-orders', label: 'Buyurtmalar', icon: 'assignment', path: '/agent/orders' },
@@ -86,110 +103,101 @@ function MainApp() {
     ];
   }, [user]);
 
-  const handleLoginRequest = (role: 'agent' | 'admin' = 'agent') => {
-    setRequestedRole(role);
-    setLoginModalOpen(true);
-  };
-
-  const handleLoggedIn = (profile: { role: 'agent' | 'admin' }) => {
-    if (profile.role === 'admin') {
-      navigate('/admin', { replace: true });
-      return;
-    }
-    navigate('/agent', { replace: true });
-  };
-
-  const hideHeader = !user && location.pathname === '/';
+  const hideHeader = location.pathname === '/';
 
   return (
     <div className="app-root">
-      {!hideHeader && <Header title={title} subtitle="" showBack={showBack} onBack={() => navigate(-1)} rightSlot={null} />}
+      {!hideHeader && (
+        <Header
+          title={title}
+          subtitle=""
+          showBack={showBack}
+          onBack={() => navigate(-1)}
+          rightSlot={null}
+        />
+      )}
       <div className="app-content">
         <Routes>
-          <Route
-            path="/"
-            element={
-              <LandingPage onLoginRequest={handleLoginRequest} />
-            }
-          />
+          <Route path="/" element={<LandingPage />} />
           <Route
             path="/agent"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <AgentDashboard activeTab="overview" />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
           <Route
             path="/agent/orders"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <AgentDashboard activeTab="orders" />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
           <Route
             path="/agent/stores"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <AgentDashboard activeTab="stores" />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
+          <Route path="/admin/login" element={<AdminLoginPage redirectTo="/admin" />} />
           <Route
             path="/admin"
             element={
-              <ProtectedRoute roles={['admin']}>
+              <AdminGuard>
                 <AdminDashboard activeTab="overview" />
-              </ProtectedRoute>
+              </AdminGuard>
             }
           />
           <Route
             path="/admin/products"
             element={
-              <ProtectedRoute roles={['admin']}>
+              <AdminGuard>
                 <AdminDashboard activeTab="products" />
-              </ProtectedRoute>
+              </AdminGuard>
             }
           />
           <Route
             path="/admin/stores"
             element={
-              <ProtectedRoute roles={['admin']}>
+              <AdminGuard>
                 <AdminDashboard activeTab="stores" />
-              </ProtectedRoute>
+              </AdminGuard>
             }
           />
           <Route
             path="/admin/agents"
             element={
-              <ProtectedRoute roles={['admin']}>
+              <AdminGuard>
                 <AdminDashboard activeTab="agents" />
-              </ProtectedRoute>
+              </AdminGuard>
             }
           />
           <Route
             path="/map"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <MapPage />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
           <Route
             path="/stats"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <StatsPage />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
           <Route
             path="/profile"
             element={
-              <ProtectedRoute roles={['agent', 'admin']}>
+              <AgentGuard>
                 <ProfilePage />
-              </ProtectedRoute>
+              </AgentGuard>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -197,12 +205,6 @@ function MainApp() {
       </div>
       {user ? <BottomNav items={navItems} /> : null}
       <ToastContainer />
-      <LoginModal
-        isOpen={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
-        initialRole={requestedRole}
-        onLoggedIn={handleLoggedIn}
-      />
     </div>
   );
 }
@@ -210,9 +212,9 @@ function MainApp() {
 export default function App() {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <MainApp />
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 }
