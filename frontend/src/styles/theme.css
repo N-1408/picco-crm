@@ -74,8 +74,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1.2rem
-    calc(5rem + env(safe-area-inset-bottom, 0px));
+  padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1.2rem 5rem;
   gap: 1.25rem;
 }
 
@@ -1406,8 +1405,7 @@ tbody tr + tr {
 
 @media (max-width: 768px) {
   .app-root {
-    padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem
-      calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem 5.5rem;
   }
 
   .app-header {
