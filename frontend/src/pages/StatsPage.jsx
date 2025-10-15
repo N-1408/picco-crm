@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
-import { useAppContext } from '../context/AppContext.jsx';
+import { useAppContext } from '../context/AppContext';
 import { exportOrdersToPDF } from '../utils/exporters.js';
 
 export default function StatsPage() {
@@ -40,15 +40,16 @@ export default function StatsPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const chartsRef = chartRefs.current;
 
     const setupCharts = async () => {
       const Chart = (await import('chart.js/auto')).default;
 
       if (!isMounted) return;
-      if (chartRefs.current.line) chartRefs.current.line.destroy();
-      if (chartRefs.current.doughnut) chartRefs.current.doughnut.destroy();
+      if (chartsRef.line) chartsRef.line.destroy();
+      if (chartsRef.doughnut) chartsRef.doughnut.destroy();
 
-      chartRefs.current.line = new Chart(lineCanvasRef.current, {
+      chartsRef.line = new Chart(lineCanvasRef.current, {
         type: 'line',
         data: {
           labels: monthlyData.labels.map((label) => format(new Date(label), 'MMM yyyy')),
@@ -88,7 +89,7 @@ export default function StatsPage() {
         }
       });
 
-      chartRefs.current.doughnut = new Chart(doughnutCanvasRef.current, {
+      chartsRef.doughnut = new Chart(doughnutCanvasRef.current, {
         type: 'doughnut',
         data: {
           labels: ['Yakunlangan', 'Jarayonda', 'Kutilmoqda'],
@@ -122,8 +123,9 @@ export default function StatsPage() {
 
     return () => {
       isMounted = false;
-      if (chartRefs.current.line) chartRefs.current.line.destroy();
-      if (chartRefs.current.doughnut) chartRefs.current.doughnut.destroy();
+      const { line, doughnut } = chartsRef;
+      line?.destroy();
+      doughnut?.destroy();
     };
   }, [monthlyData, statusBreakdown]);
 
@@ -203,3 +205,8 @@ export default function StatsPage() {
     </main>
   );
 }
+
+
+
+
+

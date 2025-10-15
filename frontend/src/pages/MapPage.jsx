@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -12,30 +11,87 @@ export default function MapPage() {
   const maplibreRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [currentLngLat, setCurrentLngLat] = useState(null);
-  const { showToast, addToast } = useAppContext();
+  const { updateStore, addToast } = useAppContext();
   const location = useLocation();
-  const targetStore = location.state?.store;
+  const targetStore = location.state?.store ?? null;
 
   useEffect(() => {
     let isMounted = true;
-    let maplibre;
+    let maplibreModule;
 
     const initMap = async () => {
       try {
-        maplibre = await import('maplibre-gl');
+        maplibreModule = await import('maplibre-gl');
         if (!mapContainerRef.current || !isMounted) return;
-        maplibreRef.current = maplibre;
+        maplibreRef.current = maplibreModule;
 
-        // Get user's location
+        const initializeMap = (center) => {
+          mapRef.current = new maplibreRef.current.Map({
+            container: mapContainerRef.current,
+            style: {
+              version: 8,
+              sources: {
+                osm: {
+                  type: 'raster',
+                  tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }
+              },
+              layers: [
+                {
+                  id: 'osm',
+                  type: 'raster',
+                  source: 'osm'
+                }
+              ]
+            },
+            center: targetStore?.coordinates ?? center,
+            zoom: 12,
+            pitch: 20
+          });
+
+          mapRef.current.addControl(new maplibreRef.current.NavigationControl(), 'top-right');
+
+          mapRef.current.on('load', () => {
+            setLoading(false);
+            const initialCoords = targetStore?.coordinates ?? center;
+            markerRef.current = new maplibreRef.current.Marker({ color: '#007AFF' })
+              .setLngLat(initialCoords)
+              .addTo(mapRef.current);
+            setCurrentLngLat({ lng: initialCoords[0], lat: initialCoords[1] });
+          });
+
+          mapRef.current.on('click', (event) => {
+            const coords = [event.lngLat.lng, event.lngLat.lat];
+            setCurrentLngLat({ lng: coords[0], lat: coords[1] });
+            if (markerRef.current) {
+              markerRef.current.setLngLat(coords);
+            } else {
+              markerRef.current = new maplibreRef.current.Marker({ color: '#007AFF' })
+                .setLngLat(coords)
+                .addTo(mapRef.current);
+            }
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+              window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            }
+          });
+        };
+
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
-              const { longitude, latitude } = position.coords;
-              setCurrentLngLat([longitude, latitude]);
-              initializeMap([longitude, latitude]);
+              if (!isMounted) return;
+              const coords = [position.coords.longitude, position.coords.latitude];
+              initializeMap(coords);
             },
             () => {
-              showToast("Joylashuvni aniqlashda xatolik", "error");
+              addToast({
+                variant: 'warning',
+                title: 'Joylashuv aniqlanmadi',
+                description: 'Geolokatsiya ruxsati talab qilinadi.'
+              });
               initializeMap(DEFAULT_CENTER);
             }
           );
@@ -44,68 +100,12 @@ export default function MapPage() {
         }
       } catch (error) {
         console.error('Map initialization failed:', error);
-        showToast("Xaritani yuklashda xatolik yuz berdi", "error");
+        addToast({
+          variant: 'error',
+          title: 'Xarita yuklanmadi',
+          description: 'MapLibre kutubxonasini yuklashda xatolik yuz berdi.'
+        });
       }
-    };
-
-    const initializeMap = (center) => {
-      mapRef.current = new maplibreRef.current.Map({
-        container: mapContainerRef.current,
-        style: {
-          version: 8,
-          sources: {
-            osm: {
-              type: 'raster',
-              tiles: [
-                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'
-              ],
-              tileSize: 256,
-              attribution:
-                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }
-          },
-          layers: [
-            {
-              id: 'osm',
-              type: 'raster',
-              source: 'osm'
-            }
-          ]
-        },
-        center: targetStore?.coordinates ?? DEFAULT_CENTER,
-        zoom: 12,
-        pitch: 20
-      });
-
-      mapRef.current.addControl(new maplibre.NavigationControl(), 'top-right');
-
-      mapRef.current.on('load', () => {
-        setLoading(false);
-        if (targetStore?.coordinates) {
-          markerRef.current = new maplibre.Marker({ color: '#007AFF' })
-            .setLngLat(targetStore.coordinates)
-            .addTo(mapRef.current);
-          setCurrentLngLat({
-            lng: targetStore.coordinates[0],
-            lat: targetStore.coordinates[1]
-          });
-        }
-      });
-
-      mapRef.current.on('click', (event) => {
-        const coords = [event.lngLat.lng, event.lngLat.lat];
-        setCurrentLngLat({ lng: coords[0], lat: coords[1] });
-          if (markerRef.current) {
-            markerRef.current.setLngLat(coords);
-          } else {
-            markerRef.current = new maplibre.Marker({ color: '#007AFF' })
-              .setLngLat(coords)
-              .addTo(mapRef.current);
-          }
-        if (window.Telegram?.WebApp?.HapticFeedback) {
-          window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        }
-      });
     };
 
     initMap();
@@ -117,7 +117,7 @@ export default function MapPage() {
         mapRef.current = null;
       }
     };
-  }, [targetStore]);
+  }, [addToast, targetStore]);
 
   const locateMe = () => {
     if (!navigator.geolocation) {
@@ -160,11 +160,12 @@ export default function MapPage() {
       });
       return;
     }
-    updateStore({
-      id: targetStore.id,
+
+    updateStore(targetStore.id, {
       coordinates: [currentLngLat.lng, currentLngLat.lat],
       lastVisit: new Date().toISOString()
     });
+
     addToast({
       variant: 'success',
       title: 'Joylashuv saqlandi',
@@ -180,7 +181,7 @@ export default function MapPage() {
           <p>{targetStore?.address ?? 'Manzilni tanlang'}</p>
           {currentLngLat ? (
             <span className="coords">
-              {currentLngLat.lat.toFixed(5)} · {currentLngLat.lng.toFixed(5)}
+              {currentLngLat.lat.toFixed(5)}, {currentLngLat.lng.toFixed(5)}
             </span>
           ) : (
             <span className="coords muted">Koordinatalar kutilmoqda</span>

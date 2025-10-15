@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext.tsx';
+import { useApp } from '../context/AppContext';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function LandingPage() {
   const vibrate = () => {
     const feedback = window.Telegram?.WebApp?.HapticFeedback as
       | {
-          impactOccurred?: (style: 'light' | 'medium' | 'heavy') => void;
+          impactOccurred?: (_style: 'light' | 'medium' | 'heavy') => void;
           selectionChanged?: () => void;
         }
       | undefined;
@@ -42,12 +42,12 @@ export default function LandingPage() {
 
   const goAgent = () => {
     vibrate();
-    navigate('/agent', { replace: false });
+    navigate('/agent');
   };
 
   const goAdmin = () => {
     vibrate();
-    navigate('/admin', { replace: false });
+    navigate('/admin');
   };
 
   const cameFromRestricted = location.search.includes('needsRegistration');
@@ -74,10 +74,10 @@ export default function LandingPage() {
           ) : isRegistered ? (
             <div className="hero-actions hero-actions--stacked">
               <button type="button" className="btn-primary btn-large" onClick={goAgent}>
-                🧑‍💼 Agent paneli
+                Agent paneli
               </button>
               <button type="button" className="btn-secondary btn-large" onClick={goAdmin}>
-                👑 Admin paneli
+                Admin paneli
               </button>
               <button type="button" className="btn-link" onClick={openBot}>
                 Telegram orqali ro&apos;yxatdan o&apos;tish

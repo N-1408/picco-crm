@@ -10,7 +10,7 @@ export async function exportOrdersToPDF({ orders, stores, agents, chartImage }) 
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
-  doc.text('PICCO CRM — Buyurtmalar hisobotı', 40, 50);
+  doc.text('PICCO CRM — Buyurtmalar hisobotlari', 40, 50);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
@@ -32,8 +32,8 @@ export async function exportOrdersToPDF({ orders, stores, agents, chartImage }) 
       order.status === 'completed'
         ? '✅ Yakunlangan'
         : order.status === 'processing'
-        ? '🟡 Jarayonda'
-        : '⏳ Kutilmoqda',
+        ? '⏳ Jarayonda'
+        : '🕒 Kutilmoqda',
     createdAt: format(new Date(order.createdAt), 'dd.MM.yyyy')
   }));
 
@@ -54,7 +54,7 @@ export async function exportOrdersToPDF({ orders, stores, agents, chartImage }) 
       amount: { halign: 'right' },
       status: { halign: 'center' }
     },
-    head: [['ID', 'Do\'kon', 'Agent', 'Summasi', 'Holati', 'Sana']],
+    head: [['ID', "Do'kon", 'Agent', 'Summasi', 'Holati', 'Sana']],
     body: rows.map((row) => [row.id, row.store, row.agent, row.amount, row.status, row.createdAt])
   });
 
@@ -65,7 +65,7 @@ export async function exportOrdersToExcel({ orders, stores, agents }) {
   const XLSX = await import('xlsx');
 
   const header = [
-    ['Buyurtma ID', 'Do\'kon', 'Agent', 'Summasi (so\'m)', 'Holati', 'Sana']
+    ["Buyurtma ID", "Do'kon", 'Agent', "Summasi (so'm)", 'Holati', 'Sana']
   ];
   const rows = orders.map((order) => [
     order.id,
@@ -78,7 +78,6 @@ export async function exportOrdersToExcel({ orders, stores, agents }) {
 
   const worksheet = XLSX.utils.aoa_to_sheet([...header, ...rows]);
 
-  // Apply header styling
   header[0].forEach((_, idx) => {
     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: idx });
     worksheet[cellAddress].s = {

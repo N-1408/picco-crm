@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext.jsx';
-import Modal from '../components/Modal.jsx';
+import { useAppContext } from '../context/AppContext';
+import Modal from '../components/Modal';
 
 export default function AdminDashboard({ activeTab = 'overview' }) {
   const {
@@ -34,7 +34,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
   }, [orders, stores]);
 
   const handleStatusChange = (storeId, status) => {
-    updateStore({ id: storeId, status });
+    updateStore(storeId, { status });
     addToast({
       variant: 'success',
       title: 'Holat yangilandi',
@@ -45,8 +45,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
   const handleInventoryUpdate = (productId, key, value) => {
     const numeric = Number(value);
     if (Number.isNaN(numeric)) return;
-    updateProduct({
-      id: productId,
+    updateProduct(productId, {
       [key]: numeric,
       updatedAt: new Date().toISOString()
     });
@@ -59,18 +58,17 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
 
   const handleProductCreate = (event) => {
     event.preventDefault();
-    const payload = {
-      ...draftProduct,
-      id: `prd-${Date.now()}`,
+    addProduct({
+      name: draftProduct.name,
+      category: draftProduct.category,
       price: Number(draftProduct.price),
       inventory: Number(draftProduct.inventory),
       updatedAt: new Date().toISOString()
-    };
-    addProduct(payload);
+    });
     addToast({
       variant: 'success',
       title: 'Mahsulot qo\'shildi',
-      description: `${payload.name} katalogga kiritildi.`
+      description: `${draftProduct.name} katalogga kiritildi.`
     });
     setDraftProduct({
       name: '',
@@ -91,9 +89,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
         </article>
         <article className="metric-card">
           <h3>Daromad</h3>
-          <p className="metric-value">
-            {metrics.orderAmount.toLocaleString('uz-UZ')} so&apos;m
-          </p>
+          <p className="metric-value">{metrics.orderAmount.toLocaleString('uz-UZ')} so&apos;m</p>
           <span className="metric-subtitle">Umumiy tushum</span>
         </article>
         <article className="metric-card">
@@ -127,14 +123,9 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
             <span>{agents[0]?.region ?? 'Toshkent'} filiali</span>
           </div>
           <div>
-            <h4>Issiq hudud</h4>
-            <p>Toshkent shahar</p>
-            <span>36% buyurtma ulushi</span>
-          </div>
-          <div>
-            <h4>Portfel diversifikatsiyasi</h4>
-            <p>Mahsulotlar 5 ta segmentda</p>
-            <span>Inventar balanslangan</span>
+            <h4>Trend mahsulot</h4>
+            <p>{products[0]?.name ?? 'Mahsulot'}</p>
+            <span>{products[0]?.category ?? 'Kategoriya'} segmenti</span>
           </div>
         </div>
       </section>
@@ -145,53 +136,59 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
     <section className="panel glass-panel">
       <div className="panel-head">
         <div>
-          <h2>Mahsulot katalogi</h2>
-          <p className="panel-subtitle">Narxlar va qoldiqlarni real vaqt rejimida boshqaring.</p>
+          <h2>Mahsulotlar</h2>
+          <p className="panel-subtitle">Narx va qoldiqni tezkor boshqarish.</p>
         </div>
         <button type="button" className="btn-primary" onClick={() => setProductModalOpen(true)}>
           <span className="material-symbols-rounded">add</span>
           Yangi mahsulot
         </button>
       </div>
-      <div className="grid-cards products-grid">
-        {products.map((product) => (
-          <article key={product.id} className="product-card">
-            <header>
-              <h3>{product.name}</h3>
-              <span>{product.category}</span>
-            </header>
-            <div className="product-meta">
-              <label>
-                Narx (so&apos;m)
-                <input
-                  type="number"
-                  min="0"
-                  value={product.price}
-                  onChange={(event) =>
-                    handleInventoryUpdate(product.id, 'price', event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Qoldiq (dona)
-                <input
-                  type="number"
-                  min="0"
-                  value={product.inventory}
-                  onChange={(event) =>
-                    handleInventoryUpdate(product.id, 'inventory', event.target.value)
-                  }
-                />
-              </label>
-            </div>
-            <footer>
-              <span>
-                Yangilangan sana:{' '}
-                {product.updatedAt ? format(parseISO(product.updatedAt), 'dd MMM, HH:mm') : '—'}
-              </span>
-            </footer>
-          </article>
-        ))}
+      <div className="table products-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Nomi</th>
+              <th>Kategoriya</th>
+              <th>Narx (so&apos;m)</th>
+              <th>Qoldiq</th>
+              <th>Yangilangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id}>
+                <td>{product.name}</td>
+                <td>{product.category}</td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    defaultValue={product.price}
+                    onBlur={(event) => handleInventoryUpdate(product.id, 'price', event.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    defaultValue={product.inventory}
+                    onBlur={(event) =>
+                      handleInventoryUpdate(product.id, 'inventory', event.target.value)
+                    }
+                  />
+                </td>
+                <td>{format(parseISO(product.updatedAt), 'dd MMM')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!products.length && (
+          <div className="empty-state">
+            <span className="material-symbols-rounded">inventory_2</span>
+            <p>Katalogda mahsulot topilmadi.</p>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -201,39 +198,28 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
       <div className="panel-head">
         <div>
           <h2>Do&apos;konlar</h2>
-          <p className="panel-subtitle">
-            Tarmoqlarni holati, tashriflar va geolokatsiyalarni kuzatib boring.
-          </p>
+          <p className="panel-subtitle">Statuslarni boshqaring va tashriflarni kuzating.</p>
         </div>
       </div>
-      <div className="stores-admin">
+      <div className="stores-list">
         {stores.map((store) => (
           <article key={store.id} className="store-row">
             <div>
               <h3>{store.title}</h3>
               <p>{store.address}</p>
             </div>
-            <div className="store-controls">
+            <div className="store-actions">
               <select
                 value={store.status}
                 onChange={(event) => handleStatusChange(store.id, event.target.value)}
               >
                 <option value="active">Faol</option>
-                <option value="pending">Kutilmoqda</option>
-                <option value="inactive">Nofaol</option>
+                <option value="pending">Jarayonda</option>
               </select>
-              <button
-                type="button"
-                className="btn-glass"
-                onClick={() => navigate('/map', { state: { storeId: store.id } })}
-              >
-                <span className="material-symbols-rounded">map</span>
-                Xarita
-              </button>
+              <span className="timestamp">
+                Oxirgi tashrif: {store.lastVisit ? format(parseISO(store.lastVisit), 'dd MMM') : '—'}
+              </span>
             </div>
-            <span className="timestamp">
-              Oxirgi tashrif: {store.lastVisit ? format(parseISO(store.lastVisit), 'dd MMM') : '—'}
-            </span>
           </article>
         ))}
       </div>
@@ -245,7 +231,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
       <div className="panel-head">
         <div>
           <h2>Agentlar</h2>
-          <p className="panel-subtitle">
+          <p>
             Agentlar faoliyati va rejalarini kuzating, rag&apos;batlantirish tizimini yarating.
           </p>
         </div>
@@ -265,10 +251,13 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
                 type="button"
                 className="btn-glass"
                 onClick={() => {
+                  const phone = agent.phone.replace(/\s/g, '');
                   if (window.Telegram?.WebApp) {
-                    window.Telegram.WebApp.openTelegramLink(`https://t.me/${agent.username ?? 'picco_agent_bot'}`);
+                    window.Telegram.WebApp.openTelegramLink(
+                      `https://t.me/${agent.username ?? 'picco_agent_bot'}`
+                    );
                   } else {
-                    window.open(`tel:${agent.phone.replace(/\s/g, '')}`, '_blank');
+                    window.open(`tel:${phone}`, '_blank');
                   }
                 }}
               >
@@ -301,7 +290,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
       <Modal
         isOpen={productModalOpen}
         onClose={() => setProductModalOpen(false)}
-        title="Yangi mahsulot qo'shish"
+        title="Yangi mahsulot qo\'shish"
         description="Premium katalogingizni yangilang. Narxlar va qoldiqni istalgan vaqtda sozlang."
         actions={
           <button type="submit" form="product-form" className="btn-primary">
@@ -315,7 +304,9 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
             <input
               type="text"
               value={draftProduct.name}
-              onChange={(event) => setDraftProduct((prev) => ({ ...prev, name: event.target.value }))}
+              onChange={(event) =>
+                setDraftProduct((prev) => ({ ...prev, name: event.target.value }))
+              }
               required
             />
           </label>

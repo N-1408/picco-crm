@@ -1,3 +1,2 @@
 // Legacy bridge for JavaScript imports; delegates to the typed implementation.
-export * from './AppContext.tsx';
-export { default } from './AppContext.tsx';
+export { default } from './LandingPage.tsx';

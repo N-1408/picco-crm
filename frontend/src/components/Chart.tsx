@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Chart } from 'chart.js';
+import { Chart, type ChartConfiguration, type ChartType } from 'chart.js';
 
 interface CustomChartData {
   labels: string[];
@@ -12,8 +12,10 @@ interface CustomChartData {
   }>;
 }
 
+type ChartKind = 'line' | 'bar' | 'pie' | 'doughnut';
+
 type ChartProps = {
-  type: 'line' | 'bar' | 'pie' | 'doughnut';
+  type: ChartKind;
   data: CustomChartData;
   height?: number;
   className?: string;
@@ -48,8 +50,8 @@ export default function ChartComponent({
       chartInstance.current.destroy();
     }
 
-    const config: any = {
-      type,
+    const config = {
+      type: type as ChartType,
       data: {
         labels: data.labels,
         datasets: data.datasets.map((dataset, index) => ({
@@ -126,10 +128,9 @@ export default function ChartComponent({
           }
         }
       }
-    };
+    } as ChartConfiguration;
 
-    // Create new chart
-    chartInstance.current = new Chart(ctx, config);
+    chartInstance.current = new Chart(ctx, config as ChartConfiguration);
 
     // Cleanup on unmount
     return () => {
@@ -145,3 +146,5 @@ export default function ChartComponent({
     </div>
   );
 }
+
+

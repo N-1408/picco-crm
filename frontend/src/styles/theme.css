@@ -1442,3 +1442,18 @@ tbody tr + tr {
   }
 }
 
+
+.nav-label {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+  text-transform: none;
+}
+
+.nav-btn.active .nav-label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+

@@ -20,6 +20,16 @@ interface TelegramWebApp {
     selectionChanged: () => void;
   };
   openTelegramLink: (url: string) => void;
+  initDataUnsafe?: {
+    user?: {
+      id?: number | string;
+      first_name?: string;
+      last_name?: string;
+      username?: string;
+      language_code?: string;
+    };
+    [key: string]: unknown;
+  };
 }
 
 interface Window {

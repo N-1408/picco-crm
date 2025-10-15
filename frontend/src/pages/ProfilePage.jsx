@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppContext } from '../context/AppContext.jsx';
+import { useAppContext } from '../context/AppContext';
 
 export default function ProfilePage() {
   const {
@@ -20,6 +20,15 @@ export default function ProfilePage() {
     });
   };
 
+  const openSupport = () => {
+    const url = 'https://t.me/picco_agent_bot';
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(url);
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <main className="page profile-page">
       <section className="glass-panel profile-card">
@@ -27,7 +36,7 @@ export default function ProfilePage() {
         <h2>{user.name}</h2>
         <span className="role-chip">{user.role === 'admin' ? 'Admin' : 'Agent'}</span>
         <p>{user.phone}</p>
-        <button type="button" className="btn-glass" onClick={() => window.open('https://t.me/picco_agent_bot', '_blank')}>
+        <button type="button" className="btn-glass" onClick={openSupport}>
           <span className="material-symbols-rounded">support</span>
           Qo&apos;llab-quvvatlash
         </button>
@@ -42,7 +51,7 @@ export default function ProfilePage() {
           <label className="switch">
             <input
               type="checkbox"
-              checked={preferences.haptics}
+              checked={preferences.haptics} aria-label="Haptik bildirishnomalar"
               onChange={(event) => updatePreferences({ haptics: event.target.checked })}
             />
             <span />
@@ -70,3 +79,4 @@ export default function ProfilePage() {
     </main>
   );
 }
+

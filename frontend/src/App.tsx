@@ -7,7 +7,7 @@ import {
   useLocation,
   useNavigate
 } from 'react-router-dom';
-import { AppProvider, useAppContext } from './context/AppContext.tsx';
+import { AppProvider, useAppContext } from './context/AppContext';
 import useTelegram from './hooks/useTelegram.js';
 import LandingPage from './pages/LandingPage';
 import AgentDashboard from './pages/AgentDashboard.jsx';
@@ -16,7 +16,7 @@ import MapPage from './pages/MapPage.jsx';
 import StatsPage from './pages/StatsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminLoginPage from './pages/AdminLogin';
-import BottomNav from './components/BottomNav.jsx';
+import BottomNav from './components/BottomNav';
 import Header from './components/Header.jsx';
 import ToastContainer from './components/Toast.jsx';
 

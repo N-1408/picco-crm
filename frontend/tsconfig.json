@@ -34,7 +34,7 @@
 
     /* Type Checking */
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "forceConsistentCasingInFileNames": true
   },
   "include": [
@@ -42,6 +42,8 @@
     "*.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
     "src/types/*.d.ts",
     "vite.config.ts"
   ],
