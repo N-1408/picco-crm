@@ -57,33 +57,13 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="hero-glow" aria-hidden="true" />
         <div className="hero-card hero-card--clean">
-          <div className="hero-header">
-            <span className="hero-tag">PICCO CRM · Mini App</span>
-            <h1 className="hero-logo">Sotuvlar uchun premium boshqaruv</h1>
-            <p className="hero-sub">
-              Agentlar va administratorlar uchun Apple uslubidagi hushyor boshqaruv paneli.
-              Buyurtmalar, xaritalar va statistikani bir joyda kuzating.
-            </p>
-          </div>
+          <span className="hero-tag">Agent tizimi</span>
+          <h1 className="hero-logo">PICCO</h1>
+          <p className="hero-sub">Panelni tanlang va ishni boshlang.</p>
           <div className="hero-illustration hero-illustration--pulse" aria-hidden="true">
             <div className="pulse-ring pulse-ring--outer" />
             <div className="pulse-ring pulse-ring--inner" />
             <span className="material-symbols-rounded">hub</span>
-          </div>
-
-          <div className="hero-metrics">
-            <div>
-              <span>Buyurtmalar</span>
-              <strong>+1240</strong>
-            </div>
-            <div>
-              <span>Do&apos;konlar</span>
-              <strong>312</strong>
-            </div>
-            <div>
-              <span>Agentlar</span>
-              <strong>480</strong>
-            </div>
           </div>
 
           {loading ? (
@@ -105,25 +85,16 @@ export default function LandingPage() {
               </button>
             </div>
           ) : (
-            <div className="hero-message glass-panel">
-              <div className="hero-message__content">
-                <h2>Ro&apos;yxatdan o&apos;tish talab qilinadi</h2>
-                <p>
-                  {cameFromRestricted
-                    ? "Avval ro'yxatdan o'tishingiz kerak. PICCO agent paneli faqat tasdiqlangan foydalanuvchilar uchun ochiladi."
-                    : "Iltimos, PICCO bot orqali ro'yxatdan o'ting. Tasdiqlanganingizdan so'ng, agent paneli avtomatik ochiladi."}
-                </p>
-                {authError ? <span className="hero-error">{authError}</span> : null}
-              </div>
-              <div className="hero-message__actions">
-                <button type="button" className="btn-primary btn-large" onClick={openBot}>
-                  @picco_agent_bot orqali ro&apos;yxatdan o&apos;tish
-                </button>
-                <span className="hero-note">
-                  PICCO rasmiy botida ma&apos;lumotlaringizni yuboring va tezkor tasdiqdan so&apos;ng
-                  WebApp orqali ishni boshlang.
-                </span>
-              </div>
+            <div className="hero-message">
+              <p>
+                {cameFromRestricted
+                  ? "Avval ro'yxatdan o'tishingiz kerak. PICCO agent paneli faqat tasdiqlangan foydalanuvchilar uchun."
+                  : "Iltimos, avval PICCO bot orqali ro'yxatdan o'ting. Tasdiqlangandan so'ng panel avtomatik ochiladi."}
+              </p>
+              {authError ? <span className="hero-error">{authError}</span> : null}
+              <button type="button" className="btn-primary btn-large" onClick={openBot}>
+                @picco_agent_bot bilan ro&apos;yxatdan o&apos;tish
+              </button>
             </div>
           )}
         </div>
