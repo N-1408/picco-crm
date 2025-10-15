@@ -16,8 +16,8 @@ import MapPage from './pages/MapPage.jsx';
 import StatsPage from './pages/StatsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminLoginPage from './pages/AdminLogin';
-import BottomNav from './components/BottomNav';
-import Header from './components/Header.jsx';
+import AppShell from './components/layout/AppShell';
+import FloatingActionButton from './components/layout/FloatingActionButton';
 import ToastContainer from './components/Toast.jsx';
 
 interface RouteGuardProps {
@@ -103,109 +103,122 @@ function MainApp() {
     ];
   }, [user]);
 
-  const hideHeader = location.pathname === '/';
+  const hideTopBar = location.pathname === '/';
+
+  const floatingAction =
+    user && location.pathname.startsWith('/agent')
+      ? (
+          <FloatingActionButton
+            icon={location.pathname.includes('stores') ? 'store' : 'add'}
+            label={location.pathname.includes('stores') ? 'Do‘kon qo‘shish' : 'Buyurtma qo‘shish'}
+            onClick={() => {
+              const eventName = location.pathname.includes('stores')
+                ? 'picco:add-store'
+                : 'picco:add-order';
+              window.dispatchEvent(new CustomEvent(eventName));
+              window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('medium');
+            }}
+          />
+        )
+      : null;
 
   return (
-    <div className="app-root">
-      {!hideHeader && (
-        <Header
-          title={title}
-          subtitle=""
-          showBack={showBack}
-          onBack={() => navigate(-1)}
-          rightSlot={null}
+    <AppShell
+      title={title}
+      subtitle=""
+      showTopBar={!hideTopBar}
+      showBack={showBack}
+      onBack={() => navigate(-1)}
+      navigation={user ? navItems : undefined}
+      floatingAction={floatingAction}
+    >
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route
+          path="/agent"
+          element={
+            <AgentGuard>
+              <AgentDashboard activeTab="overview" />
+            </AgentGuard>
+          }
         />
-      )}
-      <div className="app-content">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route
-            path="/agent"
-            element={
-              <AgentGuard>
-                <AgentDashboard activeTab="overview" />
-              </AgentGuard>
-            }
-          />
-          <Route
-            path="/agent/orders"
-            element={
-              <AgentGuard>
-                <AgentDashboard activeTab="orders" />
-              </AgentGuard>
-            }
-          />
-          <Route
-            path="/agent/stores"
-            element={
-              <AgentGuard>
-                <AgentDashboard activeTab="stores" />
-              </AgentGuard>
-            }
-          />
-          <Route path="/admin/login" element={<AdminLoginPage redirectTo="/admin" />} />
-          <Route
-            path="/admin"
-            element={
-              <AdminGuard>
-                <AdminDashboard activeTab="overview" />
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/products"
-            element={
-              <AdminGuard>
-                <AdminDashboard activeTab="products" />
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/stores"
-            element={
-              <AdminGuard>
-                <AdminDashboard activeTab="stores" />
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/agents"
-            element={
-              <AdminGuard>
-                <AdminDashboard activeTab="agents" />
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/map"
-            element={
-              <AgentGuard>
-                <MapPage />
-              </AgentGuard>
-            }
-          />
-          <Route
-            path="/stats"
-            element={
-              <AgentGuard>
-                <StatsPage />
-              </AgentGuard>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <AgentGuard>
-                <ProfilePage />
-              </AgentGuard>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-      {user ? <BottomNav items={navItems} /> : null}
+        <Route
+          path="/agent/orders"
+          element={
+            <AgentGuard>
+              <AgentDashboard activeTab="orders" />
+            </AgentGuard>
+          }
+        />
+        <Route
+          path="/agent/stores"
+          element={
+            <AgentGuard>
+              <AgentDashboard activeTab="stores" />
+            </AgentGuard>
+          }
+        />
+        <Route path="/admin/login" element={<AdminLoginPage redirectTo="/admin" />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminGuard>
+              <AdminDashboard activeTab="overview" />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <AdminGuard>
+              <AdminDashboard activeTab="products" />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/stores"
+          element={
+            <AdminGuard>
+              <AdminDashboard activeTab="stores" />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/agents"
+          element={
+            <AdminGuard>
+              <AdminDashboard activeTab="agents" />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/map"
+          element={
+            <AgentGuard>
+              <MapPage />
+            </AgentGuard>
+          }
+        />
+        <Route
+          path="/stats"
+          element={
+            <AgentGuard>
+              <StatsPage />
+            </AgentGuard>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AgentGuard>
+              <ProfilePage />
+            </AgentGuard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <ToastContainer />
-    </div>
+    </AppShell>
   );
 }
 

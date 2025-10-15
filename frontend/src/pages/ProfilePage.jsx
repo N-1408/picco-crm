@@ -1,4 +1,6 @@
 import React from 'react';
+import PageContainer from '../components/layout/PageContainer';
+import SectionHeader from '../components/layout/SectionHeader';
 import { useAppContext } from '../context/AppContext';
 
 export default function ProfilePage() {
@@ -16,7 +18,7 @@ export default function ProfilePage() {
     addToast({
       variant: 'info',
       title: 'Sessiya yakunlandi',
-      description: 'Kirish ma\'lumotlaringiz xavfsiz tarzda o\'chirildi.'
+      description: "Kirish ma'lumotlaringiz xavfsiz tarzda o'chirildi."
     });
   };
 
@@ -30,19 +32,26 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="page profile-page">
-      <section className="glass-panel profile-card">
-        <img src={user.avatar} alt={user.name} />
-        <h2>{user.name}</h2>
-        <span className="role-chip">{user.role === 'admin' ? 'Admin' : 'Agent'}</span>
-        <p>{user.phone}</p>
+    <PageContainer className="profile-page">
+      <section className="profile-header frosted-card">
+        <div className="profile-avatar">
+          <img src={user.avatar} alt={user.name} />
+          <span className="status-dot success" />
+        </div>
+        <div className="profile-meta">
+          <h2>{user.name}</h2>
+          <span className="role-chip">{user.role === 'admin' ? 'Admin' : 'Agent'}</span>
+          <p>{user.phone}</p>
+        </div>
         <button type="button" className="btn-glass" onClick={openSupport}>
           <span className="material-symbols-rounded">support</span>
           Qo&apos;llab-quvvatlash
         </button>
       </section>
-      <section className="glass-panel preferences">
-        <h3>Ilova sozlamalari</h3>
+
+      <section className="surface-card preferences-card">
+        <SectionHeader title="Ilova sozlamalari" subtitle="Shaxsiy tajribangizni boshqaring" />
+
         <div className="preference-row">
           <div>
             <strong>Haptik bildirishnomalar</strong>
@@ -51,12 +60,14 @@ export default function ProfilePage() {
           <label className="switch">
             <input
               type="checkbox"
-              checked={preferences.haptics} aria-label="Haptik bildirishnomalar"
+              checked={preferences.haptics}
+              aria-label="Haptik bildirishnomalar"
               onChange={(event) => updatePreferences({ haptics: event.target.checked })}
             />
             <span />
           </label>
         </div>
+
         <div className="preference-row">
           <div>
             <strong>Til</strong>
@@ -71,12 +82,12 @@ export default function ProfilePage() {
             <option value="en">English</option>
           </select>
         </div>
+
         <button type="button" className="btn-danger" onClick={handleLogout}>
           <span className="material-symbols-rounded">logout</span>
           Chiqish
         </button>
       </section>
-    </main>
+    </PageContainer>
   );
 }
-

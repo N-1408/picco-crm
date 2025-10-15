@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
+import PageContainer from '../components/layout/PageContainer';
+import SectionHeader from '../components/layout/SectionHeader';
 import { useAppContext } from '../context/AppContext';
 import { exportOrdersToPDF } from '../utils/exporters.js';
 
@@ -59,9 +61,9 @@ export default function StatsPage() {
               data: monthlyData.values,
               fill: true,
               tension: 0.32,
-              borderColor: '#0A84FF',
-              backgroundColor: 'rgba(10, 132, 255, 0.14)',
-              pointBackgroundColor: '#0A84FF',
+              borderColor: '#5c7cfa',
+              backgroundColor: 'rgba(92, 124, 250, 0.14)',
+              pointBackgroundColor: '#5c7cfa',
               pointBorderWidth: 2
             }
           ]
@@ -77,7 +79,7 @@ export default function StatsPage() {
               ticks: {
                 callback: (value) => `${(value / 1000000).toFixed(1)}M`
               },
-              grid: { drawBorder: false, color: 'rgba(0,0,0,0.08)' }
+              grid: { drawBorder: false, color: 'rgba(15, 23, 42, 0.08)' }
             },
             x: {
               grid: { display: false }
@@ -100,7 +102,7 @@ export default function StatsPage() {
                 statusBreakdown.processing,
                 statusBreakdown.pending
               ],
-              backgroundColor: ['#34C759', '#0A84FF', '#FFD60A'],
+              backgroundColor: ['#4ad991', '#5c7cfa', '#ffb648'],
               borderWidth: 0
             }
           ]
@@ -108,7 +110,7 @@ export default function StatsPage() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: '60%',
+          cutout: '62%',
           plugins: {
             legend: {
               position: 'bottom',
@@ -142,11 +144,16 @@ export default function StatsPage() {
         agents,
         chartImage
       });
+      addToast({
+        variant: 'success',
+        title: 'Hisobot tayyor',
+        description: 'PDF hisoboti yuklab olindi.'
+      });
     } catch (error) {
       addToast({
         variant: 'error',
         title: 'Eksport xatosi',
-        description: error.message
+        description: error instanceof Error ? error.message : 'Eksport jarayoni yakunlanmadi.'
       });
     } finally {
       setExporting(false);
@@ -154,59 +161,97 @@ export default function StatsPage() {
   };
 
   return (
-    <main className="page stats-page">
-      <div className="page-intro">
-        <div>
-          <h2>Statistika va tahlillar</h2>
-          <p>Sotuvlar dinamikasi va jamoa natijalarini real vaqt rejimida kuzating.</p>
+    <PageContainer className="stats-page">
+      <section className="dashboard-hero frosted-card stats-hero">
+        <div className="dashboard-hero__header">
+          <div>
+            <span className="dashboard-hero__eyebrow">Natijalar</span>
+            <h2>Statistika va tahlillar</h2>
+            <p>Sotuvlar dinamikasi va jamoa natijalarini real vaqt rejimida kuzating.</p>
+          </div>
         </div>
-        <button type="button" className="btn-primary subtle" disabled={isExporting} onClick={handleExport}>
-          <span className="material-symbols-rounded">download</span>
-          PDF hisobot
-        </button>
-      </div>
-      <section className="grid-cards">
-        <article className="metric-card">
-          <h3>Umumiy tushum</h3>
-          <p className="metric-value">{totalRevenue.toLocaleString('uz-UZ')} so&apos;m</p>
-          <span className="metric-subtitle">Barcha buyurtmalar kesimida</span>
+        <div className="dashboard-hero__actions">
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={isExporting}
+            onClick={handleExport}
+          >
+            <span className="material-symbols-rounded">download</span>
+            PDF hisobot
+          </button>
+        </div>
+      </section>
+
+      <section className="stat-grid">
+        <article className="surface-card stat-card accent">
+          <div className="stat-card__icon">
+            <span className="material-symbols-rounded">attach_money</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Umumiy tushum</span>
+            <p className="stat-card__value">
+              {totalRevenue.toLocaleString('uz-UZ')} <span>so&apos;m</span>
+            </p>
+            <span className="stat-card__meta">Barcha buyurtmalar kesimida</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Faol agentlar</h3>
-          <p className="metric-value">{agents.filter((agent) => agent.role === 'agent').length}</p>
-          <span className="metric-subtitle">Tarmoq bo&apos;ylab</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon">
+            <span className="material-symbols-rounded">badge</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Faol agentlar</span>
+            <p className="stat-card__value">
+              {agents.filter((agent) => agent.role === 'agent').length}
+            </p>
+            <span className="stat-card__meta">Tarmoq bo&apos;ylab</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Faol do&apos;konlar</h3>
-          <p className="metric-value">{stores.filter((store) => store.status === 'active').length}</p>
-          <span className="metric-subtitle">So&apos;nggi tashriflar asosida</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon">
+            <span className="material-symbols-rounded">store</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Faol do&apos;konlar</span>
+            <p className="stat-card__value">
+              {stores.filter((store) => store.status === 'active').length}
+            </p>
+            <span className="stat-card__meta">So&apos;nggi tashriflar asosida</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Yakunlangan buyurtmalar</h3>
-          <p className="metric-value text-success">{statusBreakdown.completed}</p>
-          <span className="metric-subtitle text-success">Sifat ko&apos;rsatkichlari</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon success">
+            <span className="material-symbols-rounded">verified</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Yakunlangan buyurtmalar</span>
+            <p className="stat-card__value">{statusBreakdown.completed}</p>
+            <span className="stat-card__meta">Sifat ko&apos;rsatkichlari</span>
+          </div>
         </article>
       </section>
 
-      <section className="panel glass-panel charts-panel">
-        <div className="chart-line">
-          <h3>Oylik sotuvlar dinamikasi</h3>
+      <section className="stats-charts">
+        <article className="surface-card chart-card">
+          <SectionHeader
+            title="Oylik sotuvlar dinamikasi"
+            subtitle="Buyurtmalar summasi asosida avtomatik yangilanadi"
+          />
           <div className="chart-wrapper">
             <canvas ref={lineCanvasRef} />
           </div>
-        </div>
-        <div className="chart-donut">
-          <h3>Buyurtmalar holati taqsimoti</h3>
+        </article>
+        <article className="surface-card chart-card">
+          <SectionHeader
+            title="Buyurtmalar holati"
+            subtitle="Jarayon bosqichlari bo‘yicha real taqsimot"
+          />
           <div className="chart-wrapper donut">
             <canvas ref={doughnutCanvasRef} />
           </div>
-        </div>
+        </article>
       </section>
-    </main>
+    </PageContainer>
   );
 }
-
-
-
-
-

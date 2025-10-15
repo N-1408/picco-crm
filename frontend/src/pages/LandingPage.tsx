@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import PageContainer from '../components/layout/PageContainer';
 import { useApp } from '../context/AppContext';
 
 export default function LandingPage() {
@@ -53,7 +54,7 @@ export default function LandingPage() {
   const cameFromRestricted = location.search.includes('needsRegistration');
 
   return (
-    <main className="landing-page landing-clean">
+    <PageContainer variant="gradient" className="landing-page landing-clean">
       <section className="landing-hero">
         <div className="hero-glow" aria-hidden="true" />
         <div className="hero-card hero-card--clean">
@@ -99,6 +100,6 @@ export default function LandingPage() {
           )}
         </div>
       </section>
-    </main>
+    </PageContainer>
   );
 }

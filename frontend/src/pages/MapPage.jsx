@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import PageContainer from '../components/layout/PageContainer';
+import SectionHeader from '../components/layout/SectionHeader';
 import { useAppContext } from '../context/AppContext';
 
 const DEFAULT_CENTER = [69.22, 41.32]; // Tashkent coordinates
@@ -57,7 +59,7 @@ export default function MapPage() {
           mapRef.current.on('load', () => {
             setLoading(false);
             const initialCoords = targetStore?.coordinates ?? center;
-            markerRef.current = new maplibreRef.current.Marker({ color: '#007AFF' })
+            markerRef.current = new maplibreRef.current.Marker({ color: '#5c7cfa' })
               .setLngLat(initialCoords)
               .addTo(mapRef.current);
             setCurrentLngLat({ lng: initialCoords[0], lat: initialCoords[1] });
@@ -69,13 +71,11 @@ export default function MapPage() {
             if (markerRef.current) {
               markerRef.current.setLngLat(coords);
             } else {
-              markerRef.current = new maplibreRef.current.Marker({ color: '#007AFF' })
+              markerRef.current = new maplibreRef.current.Marker({ color: '#5c7cfa' })
                 .setLngLat(coords)
                 .addTo(mapRef.current);
             }
-            if (window.Telegram?.WebApp?.HapticFeedback) {
-              window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-            }
+            window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light');
           });
         };
 
@@ -124,7 +124,7 @@ export default function MapPage() {
       addToast({
         variant: 'error',
         title: 'Geolokatsiya mavjud emas',
-        description: 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'
+        description: 'Brauzeringiz geolokatsiyani qo‘llab-quvvatlamaydi.'
       });
       return;
     }
@@ -135,7 +135,7 @@ export default function MapPage() {
         if (markerRef.current) {
           markerRef.current.setLngLat(coords);
         } else if (mapRef.current && maplibreRef.current) {
-          markerRef.current = new maplibreRef.current.Marker({ color: '#007AFF' })
+          markerRef.current = new maplibreRef.current.Marker({ color: '#5c7cfa' })
             .setLngLat(coords)
             .addTo(mapRef.current);
         }
@@ -174,32 +174,38 @@ export default function MapPage() {
   };
 
   return (
-    <main className="page map-page">
-      <div className="map-container">
-        <div className="map-info glass-panel">
-          <h2>{targetStore?.title ?? 'Do\'kon tanlanmagan'}</h2>
-          <p>{targetStore?.address ?? 'Manzilni tanlang'}</p>
-          {currentLngLat ? (
-            <span className="coords">
+    <PageContainer className="map-page">
+      <SectionHeader
+        title="Do‘kon xaritasi"
+        subtitle="Joylashuvni belgilang va saqlang"
+        action={
+          currentLngLat ? (
+            <span className="metric-pill">
               {currentLngLat.lat.toFixed(5)}, {currentLngLat.lng.toFixed(5)}
             </span>
-          ) : (
-            <span className="coords muted">Koordinatalar kutilmoqda</span>
-          )}
+          ) : null
+        }
+      />
+
+      <div className="map-wrapper frosted-card">
+        <div className="map-info">
+          <h2>{targetStore?.title ?? 'Do‘kon tanlanmagan'}</h2>
+          <p>{targetStore?.address ?? 'Manzilni tanlang yoki xaritadan belgilang.'}</p>
+          <div className="map-actions">
+            <button type="button" className="btn-glass" onClick={locateMe}>
+              <span className="material-symbols-rounded">my_location</span>
+              Mening joylashuvim
+            </button>
+            <button type="button" className="btn-primary" onClick={handleSave}>
+              <span className="material-symbols-rounded">done_all</span>
+              Saqlash
+            </button>
+          </div>
         </div>
-        <div ref={mapContainerRef} className="maplibre-view" />
-        <div className="map-controls">
-          <button type="button" className="btn-glass" onClick={locateMe}>
-            <span className="material-symbols-rounded">my_location</span>
-            Mening joylashuvim
-          </button>
-          <button type="button" className="btn-primary" onClick={handleSave}>
-            <span className="material-symbols-rounded">done_all</span>
-            Saqlash
-          </button>
-        </div>
+        <div ref={mapContainerRef} className="map-canvas" />
       </div>
-      {loading && <div className="loading-state">Xarita yuklanmoqda...</div>}
-    </main>
+
+      {loading ? <div className="loading-state">Xarita yuklanmoqda...</div> : null}
+    </PageContainer>
   );
 }

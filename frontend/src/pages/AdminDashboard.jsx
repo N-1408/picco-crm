@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import PageContainer from '../components/layout/PageContainer';
+import SectionHeader from '../components/layout/SectionHeader';
 import { useAppContext } from '../context/AppContext';
 import Modal from '../components/Modal';
 
@@ -81,41 +83,61 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
 
   const renderOverview = () => (
     <>
-      <section className="grid-cards">
-        <article className="metric-card accent">
-          <h3>Buyurtmalar</h3>
-          <p className="metric-value">{metrics.totalOrders}</p>
-          <span className="metric-subtitle">Umumiy buyurtmalar soni</span>
+      <section className="stat-grid">
+        <article className="surface-card stat-card accent">
+          <div className="stat-card__icon">
+            <span className="material-symbols-rounded">contract</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Buyurtmalar</span>
+            <p className="stat-card__value">{metrics.totalOrders}</p>
+            <span className="stat-card__meta">Umumiy buyurtmalar soni</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Daromad</h3>
-          <p className="metric-value">{metrics.orderAmount.toLocaleString('uz-UZ')} so&apos;m</p>
-          <span className="metric-subtitle">Umumiy tushum</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon success">
+            <span className="material-symbols-rounded">payments</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Daromad</span>
+            <p className="stat-card__value">
+              {metrics.orderAmount.toLocaleString('uz-UZ')} <span>so‘m</span>
+            </p>
+            <span className="stat-card__meta">Umumiy tushum</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Faol do&apos;konlar</h3>
-          <p className="metric-value">{metrics.activeStores}</p>
-          <span className="metric-subtitle">Hozir 24/7 ishlamoqda</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon">
+            <span className="material-symbols-rounded">storefront</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Faol do‘konlar</span>
+            <p className="stat-card__value">{metrics.activeStores}</p>
+            <span className="stat-card__meta">Hozir 24/7 ishlamoqda</span>
+          </div>
         </article>
-        <article className="metric-card">
-          <h3>Jarayondagi buyurtmalar</h3>
-          <p className="metric-value text-warning">{metrics.pendingOrders}</p>
-          <span className="metric-subtitle text-warning">Yakunlash uchun nazorat</span>
+        <article className="surface-card stat-card">
+          <div className="stat-card__icon warning">
+            <span className="material-symbols-rounded">pending_actions</span>
+          </div>
+          <div>
+            <span className="stat-card__label">Jarayondagi buyurtmalar</span>
+            <p className="stat-card__value">{metrics.pendingOrders}</p>
+            <span className="stat-card__meta text-warning">Yakunlash uchun nazorat</span>
+          </div>
         </article>
       </section>
-      <section className="panel glass-panel">
-        <div className="panel-head">
-          <div>
-            <h2>Strategik ko&apos;rsatkichlar</h2>
-            <p className="panel-subtitle">
-              Oylik sotuvlar, top agentlar va segmentlar bo&apos;yicha batafsil tahlillarni kuzating.
-            </p>
-          </div>
-          <button type="button" className="btn-primary subtle" onClick={() => navigate('/stats')}>
-            <span className="material-symbols-rounded">insights</span>
-            Statistika
-          </button>
-        </div>
+      <section className="surface-card admin-overview">
+        <SectionHeader
+          title="Strategik ko‘rsatkichlar"
+          subtitle="Oylik sotuvlar, top agentlar va segmentlar bo‘yicha batafsil tahlillarni kuzating."
+          action={
+            <button type="button" className="btn-secondary" onClick={() => navigate('/stats')}>
+              <span className="material-symbols-rounded">insights</span>
+              Statistika
+            </button>
+          }
+        />
         <div className="admin-highlights">
           <div>
             <h4>Top agent</h4>
@@ -271,17 +293,30 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
   );
 
   return (
-    <main className="page admin-dashboard">
-      <div className="page-intro">
-        <div>
-          <h2>Admin boshqaruv paneli</h2>
-          <p>Mahsulotlar, tarmoqlar va jamoani yagona markazdan boshqaring.</p>
+    <PageContainer className="admin-dashboard">
+      <section className="dashboard-hero frosted-card admin-hero">
+        <div className="dashboard-hero__header">
+          <div>
+            <span className="dashboard-hero__eyebrow">PICCO boshqaruvi</span>
+            <h2>Admin boshqaruv paneli</h2>
+            <p>Mahsulotlar, tarmoqlar va jamoani yagona markazdan boshqaring.</p>
+          </div>
+          <div className="dashboard-hero__meta">
+            <span className="material-symbols-rounded">shield_person</span>
+            Premium ruxsat
+          </div>
         </div>
-        <div className="chip">
-          <span className="material-symbols-rounded">shield_person</span>
-          Premium ruxsat
+        <div className="dashboard-hero__actions">
+          <button type="button" className="btn-primary" onClick={() => setProductModalOpen(true)}>
+            <span className="material-symbols-rounded">add</span>
+            Mahsulot qo‘shish
+          </button>
+          <button type="button" className="btn-ghost" onClick={() => navigate('/stats')}>
+            Statistika
+          </button>
         </div>
-      </div>
+      </section>
+
       {activeTab === 'overview' && renderOverview()}
       {activeTab === 'products' && renderProducts()}
       {activeTab === 'stores' && renderStores()}
@@ -290,7 +325,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
       <Modal
         isOpen={productModalOpen}
         onClose={() => setProductModalOpen(false)}
-        title="Yangi mahsulot qo\'shish"
+        title="Yangi mahsulot qo‘shish"
         description="Premium katalogingizni yangilang. Narxlar va qoldiqni istalgan vaqtda sozlang."
         actions={
           <button type="submit" form="product-form" className="btn-primary">
@@ -321,7 +356,7 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
             />
           </label>
           <label className="input-field">
-            <span>Narx (so&apos;m)</span>
+            <span>Narx (so‘m)</span>
             <input
               type="number"
               min="0"
@@ -346,6 +381,6 @@ export default function AdminDashboard({ activeTab = 'overview' }) {
           </label>
         </form>
       </Modal>
-    </main>
+    </PageContainer>
   );
 }
